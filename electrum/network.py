@@ -285,10 +285,12 @@ class Network(PrintError):
 
         # lightning network
         from . import lnwatcher
+        from . import lnworker
         from . import lnrouter
         self.channel_db = lnrouter.ChannelDB(self)
         self.path_finder = lnrouter.LNPathFinder(self.channel_db)
         self.lnwatcher = lnwatcher.LNWatcher(self)
+        self.lngossip = lnworker.LNGossip(self)
 
     def run_from_another_thread(self, coro):
         assert self._loop_thread != threading.current_thread(), 'must not be called from network thread'
@@ -1084,6 +1086,8 @@ class Network(PrintError):
         asyncio.run_coroutine_threadsafe(main(), self.asyncio_loop)
 
         self.trigger_callback('network_updated')
+        #
+        self.lngossip.start_network(self)
 
     def start(self, jobs: List=None):
         self._jobs = jobs or []

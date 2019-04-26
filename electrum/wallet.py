@@ -63,7 +63,7 @@ from .contacts import Contacts
 from .interface import RequestTimedOut
 from .ecc_fast import is_using_fast_ecc
 from .mnemonic import Mnemonic
-from .lnworker import LNWorker
+from .lnworker import LNWallet
 
 if TYPE_CHECKING:
     from .network import Network
@@ -216,7 +216,7 @@ class Abstract_Wallet(AddressSynchronizer):
             self.storage.put('wallet_type', self.wallet_type)
 
         # lightning
-        self.lnworker = LNWorker(self)
+        self.lnworker = LNWallet(self)
         # invoices and contacts
         self.invoices = InvoiceStore(self.storage)
         self.contacts = Contacts(self.storage)
