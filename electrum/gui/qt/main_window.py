@@ -803,7 +803,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         return text
 
     def format_asset_amount_and_units(self, amount):
-        text = self.format_asset_amount(amount) + ' '+ self.base_asset_unit()
+        text = self.format_asset_amount(amount * 100000000) + ' ' + self.base_asset_unit()
         return text
 
     def format_fee_rate(self, fee_rate):
@@ -1870,7 +1870,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                     self.show_transaction(tx)
                     self.do_clear()
                 else:
-                    self.show_transaction(tx)
                     self.broadcast_transaction(tx, tx_desc)
         self.sign_tx_with_password(tx, sign_done, password)
 

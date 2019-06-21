@@ -787,7 +787,7 @@ class Abstract_Wallet(AddressSynchronizer):
             try:
                 self.logger.info("creating assetsend transaction: {} {} {} {}".format(
                     from_address, to_address, asset_guid, amount))
-                raw_tx = self.network.run_from_a_thread(
+                raw_tx = self.network.run_from_another_thread(
                     self.network.create_assetallocation_send(
                         from_address,
                         to_address,
