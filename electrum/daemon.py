@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#!/usr/bin/env python
 #
 # Electrum - lightweight Bitcoin client
 # Copyright (C) 2015 Thomas Voegtlin

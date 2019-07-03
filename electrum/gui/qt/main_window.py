@@ -1736,15 +1736,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             msg += _('Do you wish to continue?')
             if not self.question(msg):
                 return
+        from_address = self.selected_asset_address
+        from_balance = self.selected_asset_balance
 
-        while asset_send_balance < amount and idx < len(asset_addresses):
-            if asset_addresses[idx]['asset_guid'] == self.selected_asset_guid:
-                from_address = asset_addresses[idx]['address']
-                asset_send_balance = asset_addresses[idx]['balance']
-                break
-            idx = idx + 1
-
-        return from_address, to_address, self.selected_asset_guid, amount, memo, asset_send_balance
+        return from_address, to_address, self.selected_asset_guid, amount, memo, from_balance
 
     def read_send_tab(self):
         label = self.message_e.text()
