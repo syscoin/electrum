@@ -361,7 +361,7 @@ class ElectrumGui:
                 self.run_tab(3, self.print_addresses, self.run_banner_tab)
                 self.run_tab(4, self.print_contacts, self.run_contacts_tab)
                 self.run_tab(5, self.print_banner, self.run_banner_tab)
-                self.run_tab(6, self.print_assets, self.run_banner_tab)
+                #self.run_tab(6, self.print_assets, self.run_banner_tab)
         except curses.error as e:
             raise Exception("Error with curses. Is your screen too small?") from e
         finally:

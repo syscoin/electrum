@@ -39,13 +39,16 @@ def read_json(filename, default):
     return r
 
 
+GIT_REPO_URL = "https://github.com/syscoin/electrum"
+GIT_REPO_ISSUES_URL = "https://github.com/syscoin/electrum/issues"
+
+POW_TARGET_TIMESPAN = 1209600  # 60 * 60 * 24 * 14 minutes / 2 weeks
+POW_TARGET_SPACING = 600  # 600 seconds / 10 minutes
+POW_BLOCK_ADJUST = 2016  # 2016
+
+CHECKPOINTS = []
+
 class AbstractNet:
-
-    POW_TARGET_TIMESPAN = 1209600  # 60 * 60 * 24 * 14 minutes / 2 weeks
-    POW_TARGET_SPACING = 600  # 600 seconds / 10 minutes
-    POW_BLOCK_ADJUST = 2016  # 2016
-
-    CHECKPOINTS = []
 
     @classmethod
     def max_checkpoint(cls) -> int:

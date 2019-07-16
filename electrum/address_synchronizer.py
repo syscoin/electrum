@@ -38,8 +38,8 @@ from .i18n import _
 from .logging import Logger
 
 if TYPE_CHECKING:
-    from .storage import WalletStorage
     from .network import Network
+    from .json_db import JsonDB
 
 
 TX_HEIGHT_LOCAL = -2
@@ -60,12 +60,8 @@ class AddressSynchronizer(Logger):
     inherited by wallet
     """
 
-    def __init__(self, storage: 'WalletStorage'):
-        if not storage.is_ready_to_be_used_by_wallet():
-            raise Exception("storage not ready to be used by AddressSynchronizer")
-
-        self.storage = storage
-        self.db = self.storage.db
+    def __init__(self, db: 'JsonDB'):
+        self.db = db
         self.network = None  # type: Network
         Logger.__init__(self)
         # verifier (SPV) and synchronizer are started in start_network
@@ -158,7 +154,7 @@ class AddressSynchronizer(Logger):
     def on_blockchain_updated(self, event, *args):
         self._get_addr_balance_cache = {}  # invalidate cache
 
-    def stop_threads(self, write_to_disk=True):
+    def stop_threads(self):
         if self.network:
             if self.synchronizer:
                 asyncio.run_coroutine_threadsafe(self.synchronizer.stop(), self.network.asyncio_loop)
@@ -167,9 +163,7 @@ class AddressSynchronizer(Logger):
                 asyncio.run_coroutine_threadsafe(self.verifier.stop(), self.network.asyncio_loop)
                 self.verifier = None
             self.network.unregister_callback(self.on_blockchain_updated)
-            self.storage.put('stored_height', self.get_local_height())
-        if write_to_disk:
-            self.storage.write()
+            self.db.put('stored_height', self.get_local_height())
 
     def add_address(self, address):
         if not self.db.get_addr_history(address):
@@ -177,7 +171,6 @@ class AddressSynchronizer(Logger):
             self.set_up_to_date(False)
         if self.synchronizer:
             self.synchronizer.add(address)
-        self.on_addresses_added([address])
 
     def get_conflicting_transactions(self, tx_hash, tx):
         """Returns a set of transaction hashes from the wallet history that are
@@ -206,9 +199,6 @@ class AddressSynchronizer(Logger):
                 conflicting_txns -= {tx_hash}
             return conflicting_txns
 
-    def on_addresses_added(self, addresses):
-        pass
-
     def add_transaction(self, tx_hash, tx, allow_unrelated=False):
         assert tx_hash, tx_hash
         assert tx, tx
@@ -231,15 +221,6 @@ class AddressSynchronizer(Logger):
                 is_for_me = any([self.is_mine(self.get_txout_address(txo)) for txo in tx.outputs()])
                 if not is_mine and not is_for_me:
                     raise UnrelatedTransactionException()
-
-            new_addresses_to_update = {}
-            for txo in tx.outputs():
-                address = self.get_txout_address(txo)
-                if self.is_mine(address):
-                    new_addresses_to_update[address] = txo
-            if len(new_addresses_to_update):
-                self.on_addresses_added(new_addresses_to_update)
-
             # Find all conflicting transactions.
             # In case of a conflict,
             #     1. confirmed > mempool > local
@@ -383,12 +364,10 @@ class AddressSynchronizer(Logger):
 
     @profiler
     def check_history(self):
-        save = False
         hist_addrs_mine = list(filter(lambda k: self.is_mine(k), self.db.get_history()))
         hist_addrs_not_mine = list(filter(lambda k: not self.is_mine(k), self.db.get_history()))
         for addr in hist_addrs_not_mine:
             self.db.remove_addr_history(addr)
-            save = True
         for addr in hist_addrs_mine:
             hist = self.db.get_addr_history(addr)
             for tx_hash, tx_height in hist:
@@ -397,9 +376,6 @@ class AddressSynchronizer(Logger):
                 tx = self.db.get_transaction(tx_hash)
                 if tx is not None:
                     self.add_transaction(tx_hash, tx, allow_unrelated=True)
-                    save = True
-        if save:
-            self.storage.write()
 
     def remove_local_transactions_we_dont_have(self):
         for txid in itertools.chain(self.db.list_txi(), self.db.list_txo()):
@@ -411,7 +387,6 @@ class AddressSynchronizer(Logger):
         with self.lock:
             with self.transaction_lock:
                 self.db.clear_history()
-                self.storage.write()
 
     def get_txpos(self, tx_hash):
         """Returns (height, txpos) tuple, even if the tx is unverified."""
@@ -573,7 +548,7 @@ class AddressSynchronizer(Logger):
         cached_local_height = getattr(self.threadlocal_cache, 'local_height', None)
         if cached_local_height is not None:
             return cached_local_height
-        return self.network.get_local_height() if self.network else self.storage.get('stored_height', 0)
+        return self.network.get_local_height() if self.network else self.db.get('stored_height', 0)
 
     def get_tx_height(self, tx_hash: str) -> TxMinedInfo:
         with self.lock:
@@ -593,8 +568,6 @@ class AddressSynchronizer(Logger):
             self.up_to_date = up_to_date
         if self.network:
             self.network.notify('status')
-        if up_to_date:
-            self.storage.write()
 
     def is_up_to_date(self):
         with self.lock: return self.up_to_date

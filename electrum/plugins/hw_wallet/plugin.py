@@ -147,12 +147,35 @@ def trezor_validate_op_return_output_and_get_data(output: TxOutput) -> bytes:
     if output.type != TYPE_SCRIPT:
         raise Exception("Unexpected output type: {}".format(output.type))
     script = bfh(output.address)
-    # if not (script[0] == opcodes.OP_RETURN and
-    #         script[1] == len(script) - 2 and script[1] <= 75):
-    #     raise UserFacingException(_("Only OP_RETURN scripts, with one constant push, are supported."))
-    # if output.value != 0:
-    #     raise UserFacingException(_("Amount for OP_RETURN output must be zero."))
-    return script[2:]
+
+    if not script[0] == opcodes.OP_RETURN:
+        raise UserFacingException(_("Only OP_RETURN scripts are supported."))
+
+    is_extended_op_return = False
+    starting_element = 2
+
+    if script[0] == opcodes.OP_RETURN and script[1] == opcodes.OP_PUSHDATA2:
+        encoded_len = script[3] << 8 + script[2]
+        if encoded_len > 0xff and encoded_len == len(script) - 4:
+            is_extended_op_return = True
+            starting_element = 4
+
+    if is_extended_op_return is False \
+            and (script[0] == opcodes.OP_RETURN and
+                 script[1] == opcodes.OP_PUSHDATA1 and
+                 script[2] == len(script) - 3 and script[2] <= 0xff):
+        is_extended_op_return = True
+        starting_element = 3
+
+    if is_extended_op_return is False and not (script[0] == opcodes.OP_RETURN and
+            script[1] == len(script) - 2 and
+            script[1] <= 75):
+        raise UserFacingException(_("Only OP_RETURN scripts, with one constant push, are supported."))
+
+    if is_extended_op_return is False and output.value != 0:
+        raise UserFacingException(_("Amount for OP_RETURN output must be zero."))
+
+    return script[starting_element:]
 
 
 def only_hook_if_libraries_available(func):
