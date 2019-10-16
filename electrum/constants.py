@@ -50,7 +50,7 @@ class AbstractNet:
 
     @classmethod
     def max_checkpoint(cls) -> int:
-        return max(0, len(cls.CHECKPOINTS) * 2016 - 1)
+        return max(0, len(cls.CHECKPOINTS) * net.POW_BLOCK_ADJUST - 1)
 
     @classmethod
     def rev_genesis_bytes(cls) -> bytes:
@@ -147,11 +147,10 @@ class SyscoinMainnet(AbstractNet):
     GENESIS = "0000022642db0346b6e01c2a397471f4f12e65d4f4251ec96c1f85367a61a7ab"
     DEFAULT_PORTS = {'t': '58881', 's': '58882'}
     DEFAULT_SERVERS = read_json('servers.json', {
-        "104.248.3.80": {
+        "127.0.0.1": {
             "pruning": "-",
             "t": "58881",
-            "s": "58882",
-            "version": "1.4"
+            "s": "58882"
         }
     })
     CHECKPOINTS = read_json('checkpoints.json', [])
@@ -175,6 +174,7 @@ class SyscoinMainnet(AbstractNet):
     BIP44_COIN_TYPE = 57
     BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
     LN_REALM_BYTE = 57
+    LN_DNS_SEEDS = []
 
 
 class SyscoinTestnet(SyscoinMainnet):
