@@ -23,7 +23,7 @@
 import binascii
 import os, sys, re, json
 from collections import defaultdict, OrderedDict
-from typing import NamedTuple, Union, TYPE_CHECKING, Tuple, Optional, Callable, Any
+from typing import NamedTuple, Union, TYPE_CHECKING, Tuple, Optional, Callable, Any, Sequence
 from datetime import datetime
 import decimal
 from decimal import Decimal
@@ -40,11 +40,13 @@ import json
 import time
 from typing import NamedTuple, Optional
 import ssl
+import ipaddress
 
 import aiohttp
 from aiohttp_socks import SocksConnector, SocksVer
 from aiorpcx import TaskGroup
 import certifi
+import dns.resolver
 
 from .i18n import _
 from .logging import get_logger, Logger
@@ -74,12 +76,51 @@ base_asset_units_inverse = inv_dict(base_asset_units)
 
 DECIMAL_POINT_DEFAULT = 8  # mBTC
 
+# types of payment requests
+PR_TYPE_ONCHAIN = 0
+PR_TYPE_LN = 2
+
+# status of payment requests
+PR_UNPAID   = 0
+PR_EXPIRED  = 1
+PR_UNKNOWN  = 2     # sent but not propagated
+PR_PAID     = 3     # send and propagated
+PR_INFLIGHT = 4     # unconfirmed
+PR_FAILED   = 5
+
+pr_tooltips = {
+    PR_UNPAID:_('Pending'),
+    PR_PAID:_('Paid'),
+    PR_UNKNOWN:_('Unknown'),
+    PR_EXPIRED:_('Expired'),
+    PR_INFLIGHT:_('In progress'),
+    PR_FAILED:_('Failed'),
+}
+
+pr_expiration_values = {
+    10*60: _('10 minutes'),
+    60*60: _('1 hour'),
+    24*60*60: _('1 day'),
+    7*24*60*60: _('1 week')
+}
+
+def get_request_status(req):
+    status = req['status']
+    status_str = pr_tooltips[status]
+    if status == PR_UNPAID:
+        if req.get('exp'):
+            expiration = req['exp'] + req['time']
+            status_str = _('Expires') + ' ' + age(expiration, include_seconds=True)
+        else:
+            status_str = _('Pending')
+    return status_str
+
 
 class UnknownBaseUnit(Exception): pass
 
 
 def decimal_point_to_base_unit_name(dp: int) -> str:
-    # e.g. 8 -> "BTC"
+    # e.g. 8 -> "SYS"
     try:
         return base_units_inverse[dp]
     except KeyError:
@@ -87,7 +128,7 @@ def decimal_point_to_base_unit_name(dp: int) -> str:
 
 
 def base_unit_name_to_decimal_point(unit_name: str) -> int:
-    # e.g. "BTC" -> 8
+    # e.g. "SYS" -> 8
     try:
         return base_units[unit_name]
     except KeyError:
@@ -95,7 +136,7 @@ def base_unit_name_to_decimal_point(unit_name: str) -> int:
 
 
 def decimal_point_to_base_asset_unit_name(au: str, dp: int) -> str:
-    # e.g. 8 -> "BTC"
+    # e.g. 8 -> "SYS"
     try:
         bau = base_asset_units_inverse[dp]
         bau = "" if bau == "-" else bau
@@ -105,7 +146,7 @@ def decimal_point_to_base_asset_unit_name(au: str, dp: int) -> str:
 
 
 def base_asset_unit_name_to_decimal_point(au: str, unit_name: str) -> int:
-    # e.g. "BTC" -> 8
+    # e.g. "SYS" -> 8
     try:
         unit_name = unit_name.replace(au, "")
         unit_name = "-" if unit_name == "" else unit_name
@@ -113,17 +154,14 @@ def base_asset_unit_name_to_decimal_point(au: str, unit_name: str) -> int:
     except KeyError:
         raise UnknownBaseUnit(unit_name) from None
 
-
 class NotEnoughFunds(Exception):
     def __str__(self):
         return _("Insufficient funds")
-
 
 class NotEnoughAssetBalanceOnAddress(Exception):
     def __str__(self):
         return _("You don't have enough balance of the asset you're trying to send on the serding address. Please"
                  " fund your sending address and then try again.")
-
 
 class NoDynamicFeeEstimates(Exception):
     def __str__(self):
@@ -160,6 +198,7 @@ class BitcoinException(Exception): pass
 class UserFacingException(Exception):
     """Exception that contains information intended to be shown to the user."""
 
+class InvoiceError(Exception): pass
 
 # Throw this exception to unwind the stack like when an error occurs.
 # However unlike other exceptions the user won't be informed.
@@ -245,7 +284,9 @@ class MyEncoder(json.JSONEncoder):
             return obj.isoformat(' ')[:-3]
         if isinstance(obj, set):
             return list(obj)
-        return super().default(obj)
+        if hasattr(obj, 'to_json') and callable(obj.to_json):
+            return obj.to_json()
+        return super(MyEncoder, self).default(obj)
 
 
 class ThreadJob(Logger):
@@ -497,6 +538,12 @@ def bh2u(x: bytes) -> str:
     return x.hex()
 
 
+def xor_bytes(a: bytes, b: bytes) -> bytes:
+    size = min(len(a), len(b))
+    return ((int.from_bytes(a[:size], "big") ^ int.from_bytes(b[:size], "big"))
+            .to_bytes(size, "big"))
+
+
 def user_dir():
     if 'ANDROID_DATA' in os.environ:
         return android_data_dir()
@@ -564,12 +611,14 @@ def format_satoshis_plain(x, decimal_point = 8):
     return "{:.8f}".format(Decimal(x) / scale_factor).rstrip('0').rstrip('.')
 
 
-DECIMAL_POINT = localeconv()['decimal_point']
+DECIMAL_POINT = localeconv()['decimal_point']  # type: str
 
 
-def format_satoshis(x, num_zeros=0, decimal_point=8, precision=None, is_diff=False, whitespaces=False):
+def format_satoshis(x, num_zeros=0, decimal_point=8, precision=None, is_diff=False, whitespaces=False) -> str:
     if x is None:
         return 'unknown'
+    if x == '!':
+        return 'max'
     if precision is None:
         precision = decimal_point
     # format string
@@ -641,22 +690,11 @@ def time_difference(distance_in_time, include_seconds):
     distance_in_seconds = int(round(abs(distance_in_time.days * 86400 + distance_in_time.seconds)))
     distance_in_minutes = int(round(distance_in_seconds/60))
 
-    if distance_in_minutes <= 1:
+    if distance_in_minutes == 0:
         if include_seconds:
-            for remainder in [5, 10, 20]:
-                if distance_in_seconds < remainder:
-                    return "less than %s seconds" % remainder
-            if distance_in_seconds < 40:
-                return "half a minute"
-            elif distance_in_seconds < 60:
-                return "less than a minute"
-            else:
-                return "1 minute"
+            return "%s seconds" % distance_in_seconds
         else:
-            if distance_in_minutes == 0:
-                return "less than a minute"
-            else:
-                return "1 minute"
+            return "less than a minute"
     elif distance_in_minutes < 45:
         return "%s minutes" % distance_in_minutes
     elif distance_in_minutes < 90:
@@ -677,60 +715,22 @@ def time_difference(distance_in_time, include_seconds):
         return "over %d years" % (round(distance_in_minutes / 525600))
 
 mainnet_block_explorers = {
-    'Bitupper Explorer': ('https://bitupper.com/en/explorer/bitcoin/',
-                        {'tx': 'transactions/', 'addr': 'addresses/'}),
-    'Bitflyer.jp': ('https://chainflyer.bitflyer.jp/',
-                        {'tx': 'Transaction/', 'addr': 'Address/'}),
-    'Blockchain.info': ('https://blockchain.com/btc/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'blockchainbdgpzk.onion': ('https://blockchainbdgpzk.onion/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockstream.info': ('https://blockstream.info/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Bitaps.com': ('https://btc.bitaps.com/',
-                        {'tx': '', 'addr': ''}),
-    'BTC.com': ('https://chain.btc.com/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Chain.so': ('https://www.chain.so/',
-                        {'tx': 'tx/BTC/', 'addr': 'address/BTC/'}),
-    'Insight.is': ('https://insight.bitpay.com/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'TradeBlock.com': ('https://tradeblock.com/blockchain/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'BlockCypher.com': ('https://live.blockcypher.com/btc/',
-                        {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockchair.com': ('https://blockchair.com/bitcoin/',
-                        {'tx': 'transaction/', 'addr': 'address/'}),
-    'blockonomics.co': ('https://www.blockonomics.co/',
-                        {'tx': 'api/tx?txid=', 'addr': '#/search?q='}),
-    'OXT.me': ('https://oxt.me/',
-                        {'tx': 'transaction/', 'addr': 'address/'}),
-    'smartbit.com.au': ('https://www.smartbit.com.au/',
+    'Blockchain Foundry Explorer': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
     'system default': ('blockchain:/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
 
 testnet_block_explorers = {
-    'Bitaps.com': ('https://tbtc.bitaps.com/',
-                       {'tx': '', 'addr': ''}),
-    'BlockCypher.com': ('https://live.blockcypher.com/btc-testnet/',
-                       {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockchain.info': ('https://www.blockchain.com/btctest/',
-                       {'tx': 'tx/', 'addr': 'address/'}),
-    'Blockstream.info': ('https://blockstream.info/testnet/',
+    'Blockchain Foundry Explorer': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
-    'BTC.com': ('https://tchain.btc.com/',
-                       {'tx': '', 'addr': ''}),
-    'smartbit.com.au': ('https://testnet.smartbit.com.au/',
-                       {'tx': 'tx/', 'addr': 'address/'}),
-    'system default': ('blockchain://000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943/',
-                       {'tx': 'tx/', 'addr': 'address/'}),
+    'system default': ('blockchain:/',
+                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
 def block_explorer_info():
     from . import constants
-    return mainnet_block_explorers if not constants.net.TESTNET and not constants.net.REGTEST else testnet_block_explorers
+    return mainnet_block_explorers if not constants.net.TESTNET else testnet_block_explorers
 
 def block_explorer(config: 'SimpleConfig') -> str:
     from . import constants
@@ -770,12 +770,12 @@ def parse_URI(uri: str, on_pr: Callable = None, *, loop=None) -> dict:
 
     if ':' not in uri:
         if not bitcoin.is_address(uri):
-            raise InvalidBitcoinURI("Not a bitcoin address")
+            raise InvalidBitcoinURI("Not a syscoin address")
         return {'address': uri}
 
     u = urllib.parse.urlparse(uri)
-    if u.scheme != 'bitcoin':
-        raise InvalidBitcoinURI("Not a bitcoin URI")
+    if u.scheme != 'syscoin':
+        raise InvalidBitcoinURI("Not a syscoin URI")
     address = u.path
 
     # python for android fails to parse query
@@ -792,7 +792,7 @@ def parse_URI(uri: str, on_pr: Callable = None, *, loop=None) -> dict:
     out = {k: v[0] for k, v in pq.items()}
     if address:
         if not bitcoin.is_address(address):
-            raise InvalidBitcoinURI(f"Invalid bitcoin address: {address}")
+            raise InvalidBitcoinURI(f"Invalid syscoin address: {address}")
         out['address'] = address
     if 'amount' in out:
         am = out['amount']
@@ -862,7 +862,7 @@ def create_bip21_uri(addr, amount_sat: Optional[int], message: Optional[str],
             raise Exception(f"illegal key for URI: {repr(k)}")
         v = urllib.parse.quote(v)
         query.append(f"{k}={v}")
-    p = urllib.parse.ParseResult(scheme='bitcoin', netloc='', path=addr, params='', query='&'.join(query), fragment='')
+    p = urllib.parse.ParseResult(scheme='syscoin', netloc='', path=addr, params='', query='&'.join(query), fragment='')
     return str(urllib.parse.urlunparse(p))
 
 
@@ -981,7 +981,9 @@ def ignore_exceptions(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except BaseException as e:
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
             pass
     return wrapper
 
@@ -1178,3 +1180,34 @@ def multisig_type(wallet_type):
     if match:
         match = [int(x) for x in match.group(1, 2)]
     return match
+
+
+def is_ip_address(x: Union[str, bytes]) -> bool:
+    if isinstance(x, bytes):
+        x = x.decode("utf-8")
+    try:
+        ipaddress.ip_address(x)
+        return True
+    except ValueError:
+        return False
+
+
+def list_enabled_bits(x: int) -> Sequence[int]:
+    """e.g. 77 (0b1001101) --> (0, 2, 3, 6)"""
+    binary = bin(x)[2:]
+    rev_bin = reversed(binary)
+    return tuple(i for i, b in enumerate(rev_bin) if b == '1')
+
+
+def resolve_dns_srv(host: str):
+    srv_records = dns.resolver.query(host, 'SRV')
+    # priority: prefer lower
+    # weight: tie breaker; prefer higher
+    srv_records = sorted(srv_records, key=lambda x: (x.priority, -x.weight))
+
+    def dict_from_srv_record(srv):
+        return {
+            'host': str(srv.target),
+            'port': srv.port,
+        }
+    return [dict_from_srv_record(srv) for srv in srv_records]

@@ -36,7 +36,7 @@ except ImportError:
 
 MSG_NEEDS_FW_UPDATE_GENERIC = _('Firmware version too old. Please update at') + \
                       ' https://www.ledgerwallet.com'
-MSG_NEEDS_FW_UPDATE_SEGWIT = _('Firmware version (or "Bitcoin" app) too old for Segwit support. Please update at') + \
+MSG_NEEDS_FW_UPDATE_SEGWIT = _('Firmware version (or "Syscoin" app) too old for Segwit support. Please update at') + \
                       ' https://www.ledgerwallet.com'
 MULTI_OUTPUT_SUPPORT = '1.1.4'
 SEGWIT_SUPPORT = '1.1.10'
@@ -202,7 +202,7 @@ class Ledger_Client():
                 self.perform_hw1_preflight()
             except BTChipException as e:
                 if (e.sw == 0x6d00 or e.sw == 0x6700):
-                    raise UserFacingException(_("Device not in Bitcoin mode")) from e
+                    raise UserFacingException(_("Device not in Syscoin mode")) from e
                 raise e
             self.preflightDone = True
 
@@ -224,7 +224,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         # device reconnects
         self.force_watching_only = False
         self.signing = False
-        self.cfg = d.get('cfg', {'mode':0,'pair':''})
+        self.cfg = d.get('cfg', {'mode': 0})
 
     def dump(self):
         obj = Hardware_KeyStore.dump(self)
@@ -318,7 +318,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
 
     @test_pin_unlocked
     @set_and_unset_signing
-    def sign_transaction(self, tx, password):
+    def sign_transaction(self, tx: Transaction, password):
         if tx.is_complete():
             return
         client = self.get_client()
@@ -409,10 +409,9 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 if (info is not None) and len(tx.outputs()) > 1 \
                         and not has_change:
                     index = info.address_index
-                    on_change_branch = index[0] == 1
                     # prioritise hiding outputs on the 'change' branch from user
                     # because no more than one change address allowed
-                    if on_change_branch == any_output_on_change_branch:
+                    if info.is_change == any_output_on_change_branch:
                         changePath = self.get_derivation()[2:] + "/%d/%d"%index
                         has_change = True
                     else:
@@ -461,8 +460,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                     pin = self.handler.get_auth( outputData ) # does the authenticate dialog and returns pin
                     if not pin:
                         raise UserWarning()
-                    if pin != 'paired':
-                        self.handler.show_message(_("Confirmed. Signing Transaction..."))
+                    self.handler.show_message(_("Confirmed. Signing Transaction..."))
                 while inputIndex < len(inputs):
                     singleInput = [ chipInputs[inputIndex] ]
                     self.get_client().startUntrustedTransaction(False, 0,
@@ -485,16 +483,14 @@ class Ledger_KeyStore(Hardware_KeyStore):
                         pin = self.handler.get_auth( outputData ) # does the authenticate dialog and returns pin
                         if not pin:
                             raise UserWarning()
-                        if pin != 'paired':
-                            self.handler.show_message(_("Confirmed. Signing Transaction..."))
+                        self.handler.show_message(_("Confirmed. Signing Transaction..."))
                     else:
                         # Sign input with the provided PIN
                         inputSignature = self.get_client().untrustedHashSign(inputsPaths[inputIndex], pin, lockTime=tx.locktime)
                         inputSignature[0] = 0x30 # force for 1.4.9+
                         signatures.append(inputSignature)
                         inputIndex = inputIndex + 1
-                    if pin != 'paired':
-                        firstTransaction = False
+                    firstTransaction = False
         except UserWarning:
             self.handler.show_error(_('Cancelled by user'))
             return

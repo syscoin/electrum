@@ -38,7 +38,7 @@ import logging
 import aiorpcx
 from aiorpcx import RPCSession, Notification, NetAddress
 from aiorpcx.curio import timeout_after, TaskTimeout
-from aiorpcx.jsonrpc import JSONRPC
+from aiorpcx.jsonrpc import JSONRPC, CodeMessageError
 from aiorpcx.rawsocket import RSClient
 import certifi
 
@@ -81,9 +81,6 @@ class NotificationSession(RPCSession):
         self.cache = {}
         self.default_timeout = NetworkTimeout.Generic.NORMAL
         self._msg_counter = itertools.count(start=1)
-        self.connection.max_response_size = 10000000
-        self.framer = {}
-        self.framer['max_size'] = 10000000
         self.interface = None  # type: Optional[Interface]
         self.cost_hard_limit = 0  # disable aiorpcx resource limits
 
@@ -118,6 +115,9 @@ class NotificationSession(RPCSession):
                 timeout)
         except (TaskTimeout, asyncio.TimeoutError) as e:
             raise RequestTimedOut(f'request timed out: {args} (id: {msg_id})') from e
+        except CodeMessageError as e:
+            self.maybe_log(f"--> {repr(e)} (id: {msg_id})")
+            raise
         else:
             self.maybe_log(f"--> {response} (id: {msg_id})")
             return response
@@ -157,7 +157,10 @@ class NotificationSession(RPCSession):
             self.interface.logger.debug(msg)
 
 
-class GracefulDisconnect(Exception):
+class NetworkException(Exception): pass
+
+
+class GracefulDisconnect(NetworkException):
     log_level = logging.INFO
 
     def __init__(self, *args, log_level=None, **kwargs):
@@ -173,7 +176,7 @@ class RequestTimedOut(GracefulDisconnect):
 
 class ErrorParsingSSLCert(Exception): pass
 class ErrorGettingSSLCertFromServer(Exception): pass
-class ConnectError(Exception): pass
+class ConnectError(NetworkException): pass
 
 
 class _RSClient(RSClient):
@@ -336,7 +339,8 @@ class Interface(Logger):
                 self.logger.debug(f"(disconnect) trace for {repr(e)}", exc_info=True)
             finally:
                 await self.network.connection_down(self)
-                self.got_disconnected.set_result(1)
+                if not self.got_disconnected.done():
+                    self.got_disconnected.set_result(1)
                 # if was not 'ready' yet, schedule waiting coroutines:
                 self.ready.cancel()
         return wrapper_func
@@ -411,20 +415,20 @@ class Interface(Logger):
         # use lower timeout as we usually have network.bhi_lock here
         timeout = self.network.get_network_timeout_seconds(NetworkTimeout.Urgent)
         res = await self.session.send_request('blockchain.block.header', [height], timeout=timeout)
-        return blockchain.deserialize_header(bytes.fromhex(res), height)
+        return blockchain.deserialize_full_header(bytes.fromhex(res), height)
 
     async def request_chunk(self, height, tip=None, *, can_return_early=False):
-        index = height // constants.net.POW_BLOCK_ADJUST
+        index = height // 2016
         if can_return_early and index in self._requested_chunks:
             return
         self.logger.info(f"requesting chunk from height {height}")
-        size = constants.net.POW_BLOCK_ADJUST
+        size = 2016
         if tip is not None:
-            size = min(size, tip - index * constants.net.POW_BLOCK_ADJUST + 1)
+            size = min(size, tip - index * 2016 + 1)
             size = max(size, 0)
         try:
             self._requested_chunks.add(index)
-            res = await self.session.send_request('blockchain.block.headers', [index * constants.net.POW_BLOCK_ADJUST, size])
+            res = await self.session.send_request('blockchain.block.headers', [index * 2016, size])
         finally:
             try: self._requested_chunks.remove(index)
             except KeyError: pass
@@ -489,7 +493,7 @@ class Interface(Logger):
             item = await header_queue.get()
             raw_header = item[0]
             height = raw_header['height']
-            header = blockchain.deserialize_header(bfh(raw_header['hex']), height)
+            header = blockchain.deserialize_full_header(bfh(raw_header['hex']), height)
             self.tip_header = header
             self.tip = height
             if self.tip < constants.net.max_checkpoint():
@@ -527,7 +531,7 @@ class Interface(Logger):
                     last, height = await self.step(height)
                     continue
                 self.network.trigger_callback('network_updated')
-                height = (height // constants.net.POW_BLOCK_ADJUST * constants.net.POW_BLOCK_ADJUST) + num_headers
+                height = (height // 2016 * 2016) + num_headers
                 assert height <= next_height+1, (height, self.tip)
                 last = 'catchup'
             else:

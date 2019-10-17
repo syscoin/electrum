@@ -31,7 +31,7 @@ import sys
 from typing import NamedTuple, Any, Union, TYPE_CHECKING, Optional
 
 from .i18n import _
-from .util import (profiler, DaemonThread, UserCancelled, ThreadJob)
+from .util import (profiler, DaemonThread, UserCancelled, ThreadJob, UserFacingException)
 from . import bip32
 from . import plugins
 from .simple_config import SimpleConfig
@@ -285,8 +285,7 @@ class BasePlugin(Logger):
         pass
 
 
-class DeviceNotFoundError(Exception): pass
-class DeviceUnpairableError(Exception): pass
+class DeviceUnpairableError(UserFacingException): pass
 class HardwarePluginLibraryUnavailable(Exception): pass
 
 
@@ -496,9 +495,9 @@ class DeviceMgr(ThreadJob):
         # or it is not pairable
         raise DeviceUnpairableError(
             _('Electrum cannot pair with your {}.\n\n'
-              'Before you request bitcoins to be sent to addresses in this '
+              'Before you request syscoins to be sent to addresses in this '
               'wallet, ensure you can pair with your device, or that you have '
-              'its seed (and passphrase, if any).  Otherwise all bitcoins you '
+              'its seed (and passphrase, if any).  Otherwise all syscoins you '
               'receive will be unspendable.').format(plugin.device))
 
     def unpaired_device_infos(self, handler, plugin: 'HW_PluginBase', devices=None,
@@ -606,7 +605,7 @@ class DeviceMgr(ThreadJob):
                 new_devices = f()
             except BaseException as e:
                 self.logger.error('custom device enum failed. func {}, error {}'
-                                  .format(str(f), str(e)))
+                                  .format(str(f), repr(e)))
             else:
                 devices.extend(new_devices)
 

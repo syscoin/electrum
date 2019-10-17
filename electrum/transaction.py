@@ -31,7 +31,8 @@ import struct
 import traceback
 import sys
 from typing import (Sequence, Union, NamedTuple, Tuple, Optional, Iterable,
-                    Callable, List, Dict)
+                    Callable, List, Dict, Set, TYPE_CHECKING)
+from collections import defaultdict
 
 from . import ecc, bitcoin, constants, segwit_addr
 from .util import profiler, to_bytes, bh2u, bfh
@@ -44,14 +45,15 @@ from .crypto import sha256d
 from .keystore import xpubkey_to_address, xpubkey_to_pubkey
 from .logging import get_logger
 
+if TYPE_CHECKING:
+    from .wallet import Abstract_Wallet
+
 
 _logger = get_logger(__name__)
 
 
 NO_SIGNATURE = 'ff'
 PARTIAL_TXN_HEADER_MAGIC = b'EPTF\xff'
-
-SYSCOIN_VERSION = 0x7400
 
 
 class SerializationError(Exception):
@@ -83,9 +85,16 @@ class TxOutputForUI(NamedTuple):
 
 class TxOutputHwInfo(NamedTuple):
     address_index: Tuple
-    sorted_xpubs: Iterable[str]
+    sorted_xpubs: Sequence[str]
     num_sig: Optional[int]
     script_type: str
+    is_change: bool  # whether the wallet considers the output to be change
+
+
+class BIP143SharedTxDigestFields(NamedTuple):
+    hashPrevouts: str
+    hashSequence: str
+    hashOutputs: str
 
 
 class BCDataStream(object):
@@ -531,12 +540,8 @@ def parse_output(vds, i):
     return d
 
 
-# if expect_trailing_data, returns (deserialized transaction, start position of
-# trailing data)
-def deserialize(raw: str, force_full_parse=False, expect_trailing_data=False, raw_bytes=None,
-                expect_trailing_bytes=False, copy_input=True, start_position=0) -> dict:
-    if raw_bytes is None:
-        raw_bytes = bfh(raw)
+def deserialize(raw: str, force_full_parse=False) -> dict:
+    raw_bytes = bfh(raw)
     d = {}
     if raw_bytes[:5] == PARTIAL_TXN_HEADER_MAGIC:
         d['partial'] = is_partial = True
@@ -549,11 +554,7 @@ def deserialize(raw: str, force_full_parse=False, expect_trailing_data=False, ra
         d['partial'] = is_partial = False
     full_parse = force_full_parse or is_partial
     vds = BCDataStream()
-    if copy_input:
-        vds.write(raw_bytes)
-    else:
-        vds.input = raw_bytes
-    vds.read_cursor = start_position
+    vds.write(raw_bytes)
     d['version'] = vds.read_int32()
     n_vin = vds.read_compact_size()
     is_segwit = (n_vin == 0)
@@ -571,17 +572,9 @@ def deserialize(raw: str, force_full_parse=False, expect_trailing_data=False, ra
             txin = d['inputs'][i]
             parse_witness(vds, txin, full_parse=full_parse)
     d['lockTime'] = vds.read_uint32()
-    if vds.can_read_more() and not expect_trailing_data:
+    if vds.can_read_more():
         raise SerializationError('extra junk at the end')
-    if not expect_trailing_data:
-        return d
-    # The caller is expecting trailing data to be present; return starting
-    # position of trailing data in bytes format
-    if expect_trailing_bytes:
-        return d, vds.read_cursor
-    # The caller is expecting trailing data to be present; return starting
-    # position of trailing data in hex format
-    raise Exception("Unimplemented: starting position for trailing data in hex format")
+    return d
 
 
 # pay & redeem scripts
@@ -604,17 +597,13 @@ class Transaction:
             self.raw = self.serialize()
         return self.raw
 
-    def __init__(self, raw, expect_trailing_data=False, raw_bytes=None,
-                 expect_trailing_bytes=False, copy_input=True, start_position=0):
+    def __init__(self, raw):
         if raw is None:
             self.raw = None
-            self.raw_bytes = raw_bytes
         elif isinstance(raw, str):
             self.raw = raw.strip() if raw else None
-            self.raw_bytes = raw_bytes
         elif isinstance(raw, dict):
             self.raw = raw['hex']
-            self.raw_bytes = raw_bytes
         else:
             raise Exception("cannot initialize transaction", raw)
         self._inputs = None
@@ -625,12 +614,7 @@ class Transaction:
         # this value will get properly set when deserializing
         self.is_partial_originally = True
         self._segwit_ser = None  # None means "don't know"
-        self._unsigned_segwit = None # set to true when an unsigned segwit tx is created externally and deserialized
         self.output_info = None  # type: Optional[Dict[str, TxOutputHwInfo]]
-        self.expect_trailing_data = expect_trailing_data
-        self.expect_trailing_bytes = expect_trailing_bytes
-        self.copy_input = copy_input
-        self.start_position = start_position
 
     def update(self, raw):
         self.raw = raw
@@ -640,12 +624,12 @@ class Transaction:
     def inputs(self):
         if self._inputs is None:
             self.deserialize()
-        return self._inputs
+        return self._inputs or []
 
     def outputs(self) -> List[TxOutput]:
         if self._outputs is None:
             self.deserialize()
-        return self._outputs
+        return self._outputs or []
 
     @classmethod
     def get_sorted_pubkeys(self, txin):
@@ -654,8 +638,7 @@ class Transaction:
             return [], []
         x_pubkeys = txin['x_pubkeys']
         pubkeys = txin.get('pubkeys')
-        if pubkeys is None or len(pubkeys) == 0:
-        #if pubkeys is None:
+        if pubkeys is None:
             pubkeys = [xpubkey_to_pubkey(x) for x in x_pubkeys]
             pubkeys, x_pubkeys = zip(*sorted(zip(pubkeys, x_pubkeys)))
             txin['pubkeys'] = pubkeys = list(pubkeys)
@@ -707,72 +690,37 @@ class Transaction:
         txin['witness'] = None    # force re-serialization
         self.raw = None
 
-    def add_inputs_info(self, wallet, force=False):
-        if self.is_complete() and force is False:
+    def add_inputs_info(self, wallet: 'Abstract_Wallet') -> None:
+        if self.is_complete():
             return
         for txin in self.inputs():
-            if force is True:
-                addr = txin.get('address')
-                if addr is None:
-                    # set address from input scripts
-                    _bytes = txin.get('scriptSig')
-                    _bytes = bfh(_bytes)
-                    txin['type'], txin['address'] = get_address_from_output_script(_bytes)
             wallet.add_input_info(txin)
 
     def remove_signatures(self):
         for txin in self.inputs():
             txin['signatures'] = [None] * len(txin['signatures'])
+            txin['scriptSig'] = None
+            txin['witness'] = None
         assert not self.is_complete()
+        self.raw = None
 
-    # If expect_trailing_data == True, also returns start position of trailing
-    # data.
-    def deserialize(self, force_full_parse=False, wallet=None, unsigned_segwit=False, ignore_inputs=False):
-        if self.raw is None and self.raw_bytes is None:
+    def deserialize(self, force_full_parse=False):
+        if self.raw is None:
             return
             #self.raw = self.serialize()
-        if self._inputs is not None and not ignore_inputs:
+        if self._inputs is not None:
             return
-        if self.expect_trailing_data:
-            d, start_position = deserialize(self.raw,
-                                            force_full_parse,
-                                            expect_trailing_data=self.expect_trailing_data,
-                                            raw_bytes=self.raw_bytes,
-                                            expect_trailing_bytes=self.expect_trailing_bytes,
-                                            copy_input=self.copy_input,
-                                            start_position=self.start_position)
-        else:
-            d = deserialize(self.raw, force_full_parse, raw_bytes=self.raw_bytes, start_position=self.start_position)
+        d = deserialize(self.raw, force_full_parse)
         self._inputs = d['inputs']
         self._outputs = [TxOutput(x['type'], x['address'], x['value']) for x in d['outputs']]
         self.locktime = d['lockTime']
         self.version = d['version']
         self.is_partial_originally = d['partial']
         self._segwit_ser = d['segwit_ser']
-        self._unsigned_segwit = unsigned_segwit
-
-        if wallet is not None:
-            self.add_inputs_info(wallet, True)
-
-        if self.expect_trailing_data:
-            if self.expect_trailing_bytes:
-                if self.raw is not None:
-                    self.raw = self.raw[(2*self.start_position):(2*start_position)]
-                if self.raw_bytes is not None:
-                    self.raw_bytes = self.raw_bytes[self.start_position:start_position]
-            else:
-                if self.raw is not None:
-                    self.raw = self.raw[self.start_position:start_position]
-                if self.raw_bytes is not None:
-                    self.raw_bytes = self.raw_bytes[(self.start_position//2):(start_position//2)]
-            self.expect_trailing_data = False
-            self.start_position = 0
-            return d, start_position
-        else:
-            return d
+        return d
 
     @classmethod
-    def from_io(klass, inputs, outputs, locktime=0, version=None):
+    def from_io(klass, inputs, outputs, *, locktime=0, version=None):
         self = klass(None)
         self._inputs = inputs
         self._outputs = outputs
@@ -886,10 +834,10 @@ class Transaction:
     def guess_txintype_from_address(cls, addr):
         # It's not possible to tell the script type in general
         # just from an address.
-        # - "1" addresses are of course p2pkh
+        # - "S" addresses are of course p2pkh
         # - "3" addresses are p2sh but we don't know the redeem script..
-        # - "bc1" addresses (if they are 42-long) are p2wpkh
-        # - "bc1" addresses that are 62-long are p2wsh but we don't know the script..
+        # - "sys1" addresses (if they are 43-long) are p2wpkh
+        # - "sys1" addresses that are 63-long are p2wsh but we don't know the script..
         # If we don't know the script, we _guess_ it is pubkeyhash.
         # As this method is used e.g. for tx size estimation,
         # the estimation will not be precise.
@@ -966,14 +914,12 @@ class Transaction:
             return preimage_script
 
         pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
-        if txin['type'] == 'p2pkh':
-            return bitcoin.address_to_script(txin['address'])
-        elif txin['type'] in ['p2sh', 'p2wsh', 'p2wsh-p2sh']:
+        if txin['type'] in ['p2sh', 'p2wsh', 'p2wsh-p2sh']:
             return multisig_script(pubkeys, txin['num_sig'])
-        elif txin['type'] in ['p2wpkh', 'p2wpkh-p2sh']:
+        elif txin['type'] in ['p2pkh', 'p2wpkh', 'p2wpkh-p2sh']:
             pubkey = pubkeys[0]
             pkh = bh2u(hash_160(bfh(pubkey)))
-            return '76a9' + push_script(pkh) + '88ac'
+            return bitcoin.pubkeyhash_to_p2pkh_script(pkh)
         elif txin['type'] == 'p2pk':
             pubkey = pubkeys[0]
             return bitcoin.public_key_to_p2pk_script(pubkey)
@@ -992,6 +938,9 @@ class Transaction:
         prevout_n = txin['prevout_n']
         return prevout_hash + ':%d' % prevout_n
 
+    def prevout(self, index):
+        return self.get_outpoint_from_txin(self.inputs()[index])
+
     @classmethod
     def serialize_input(self, txin, script):
         # Prev hash and index
@@ -1008,6 +957,7 @@ class Transaction:
             txin['sequence'] = nSequence
 
     def BIP69_sort(self, inputs=True, outputs=True):
+        # NOTE: other parts of the code rely on these sorts being *stable* sorts
         if inputs:
             self._inputs.sort(key = lambda i: (i['prevout_hash'], i['prevout_n']))
         if outputs:
@@ -1021,18 +971,30 @@ class Transaction:
         s += script
         return s
 
-    def serialize_preimage(self, i):
+    def _calc_bip143_shared_txdigest_fields(self) -> BIP143SharedTxDigestFields:
+        inputs = self.inputs()
+        outputs = self.outputs()
+        hashPrevouts = bh2u(sha256d(bfh(''.join(self.serialize_outpoint(txin) for txin in inputs))))
+        hashSequence = bh2u(sha256d(bfh(''.join(int_to_hex(txin.get('sequence', 0xffffffff - 1), 4) for txin in inputs))))
+        hashOutputs = bh2u(sha256d(bfh(''.join(self.serialize_output(o) for o in outputs))))
+        return BIP143SharedTxDigestFields(hashPrevouts=hashPrevouts,
+                                          hashSequence=hashSequence,
+                                          hashOutputs=hashOutputs)
+
+    def serialize_preimage(self, txin_index: int, *,
+                           bip143_shared_txdigest_fields: BIP143SharedTxDigestFields = None) -> str:
         nVersion = int_to_hex(self.version, 4)
-        nHashType = int_to_hex(1, 4)
+        nHashType = int_to_hex(1, 4)  # SIGHASH_ALL
         nLocktime = int_to_hex(self.locktime, 4)
         inputs = self.inputs()
         outputs = self.outputs()
-        txin = inputs[i]
-        # TODO: py3 hex
+        txin = inputs[txin_index]
         if self.is_segwit_input(txin):
-            hashPrevouts = bh2u(sha256d(bfh(''.join(self.serialize_outpoint(txin) for txin in inputs))))
-            hashSequence = bh2u(sha256d(bfh(''.join(int_to_hex(txin.get('sequence', 0xffffffff - 1), 4) for txin in inputs))))
-            hashOutputs = bh2u(sha256d(bfh(''.join(self.serialize_output(o) for o in outputs))))
+            if bip143_shared_txdigest_fields is None:
+                bip143_shared_txdigest_fields = self._calc_bip143_shared_txdigest_fields()
+            hashPrevouts = bip143_shared_txdigest_fields.hashPrevouts
+            hashSequence = bip143_shared_txdigest_fields.hashSequence
+            hashOutputs = bip143_shared_txdigest_fields.hashOutputs
             outpoint = self.serialize_outpoint(txin)
             preimage_script = self.get_preimage_script(txin)
             scriptCode = var_int(len(preimage_script) // 2) + preimage_script
@@ -1040,14 +1002,13 @@ class Transaction:
             nSequence = int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
             preimage = nVersion + hashPrevouts + hashSequence + outpoint + scriptCode + amount + nSequence + hashOutputs + nLocktime + nHashType
         else:
-            txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.get_preimage_script(txin) if i==k else '') for k, txin in enumerate(inputs))
+            txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.get_preimage_script(txin) if txin_index==k else '')
+                                                   for k, txin in enumerate(inputs))
             txouts = var_int(len(outputs)) + ''.join(self.serialize_output(o) for o in outputs)
             preimage = nVersion + txins + txouts + nLocktime + nHashType
         return preimage
 
     def is_segwit(self, guess_for_address=False):
-        if self._unsigned_segwit:
-            return True
         if not self.is_partial_originally:
             return self._segwit_ser
         return any(self.is_segwit_input(x, guess_for_address=guess_for_address) for x in self.inputs())
@@ -1107,13 +1068,13 @@ class Transaction:
         self.raw = None
         self.BIP69_sort(inputs=False)
 
-    def input_value(self):
+    def input_value(self) -> int:
         return sum(x['value'] for x in self.inputs())
 
-    def output_value(self):
-        return sum(val for tp, addr, val in self.outputs())
+    def output_value(self) -> int:
+        return sum(o.value for o in self.outputs())
 
-    def get_fee(self):
+    def get_fee(self) -> int:
         return self.input_value() - self.output_value()
 
     def is_final(self):
@@ -1194,6 +1155,7 @@ class Transaction:
 
     def sign(self, keypairs) -> None:
         # keypairs:  (x_)pubkey -> secret_bytes
+        bip143_shared_txdigest_fields = self._calc_bip143_shared_txdigest_fields()
         for i, txin in enumerate(self.inputs()):
             pubkeys, x_pubkeys = self.get_sorted_pubkeys(txin)
             for j, (pubkey, x_pubkey) in enumerate(zip(pubkeys, x_pubkeys)):
@@ -1207,14 +1169,15 @@ class Transaction:
                     continue
                 _logger.info(f"adding signature for {_pubkey}")
                 sec, compressed = keypairs.get(_pubkey)
-                sig = self.sign_txin(i, sec)
+                sig = self.sign_txin(i, sec, bip143_shared_txdigest_fields=bip143_shared_txdigest_fields)
                 self.add_signature_to_txin(i, j, sig)
 
-        _logger.info(f"is_complete {self.is_complete()}")
+        _logger.debug(f"is_complete {self.is_complete()}")
         self.raw = self.serialize()
 
-    def sign_txin(self, txin_index, privkey_bytes) -> str:
-        pre_hash = sha256d(bfh(self.serialize_preimage(txin_index)))
+    def sign_txin(self, txin_index, privkey_bytes, *, bip143_shared_txdigest_fields=None) -> str:
+        pre_hash = sha256d(bfh(self.serialize_preimage(txin_index,
+                                                       bip143_shared_txdigest_fields=bip143_shared_txdigest_fields)))
         privkey = ecc.ECPrivkey(privkey_bytes)
         sig = privkey.sign_transaction(pre_hash)
         sig = bh2u(sig) + '01'
@@ -1236,6 +1199,25 @@ class Transaction:
         return (addr in (o.address for o in self.outputs())) \
                or (addr in (txin.get("address") for txin in self.inputs()))
 
+    def get_output_idxs_from_scriptpubkey(self, script: str) -> Set[int]:
+        """Returns the set indices of outputs with given script."""
+        assert isinstance(script, str)  # hex
+        # build cache if there isn't one yet
+        # note: can become stale and return incorrect data
+        #       if the tx is modified later; that's out of scope.
+        if not hasattr(self, '_script_to_output_idx'):
+            d = defaultdict(set)
+            for output_idx, o in enumerate(self.outputs()):
+                o_script = self.pay_script(o.type, o.address)
+                assert isinstance(o_script, str)
+                d[o_script].add(output_idx)
+            self._script_to_output_idx = d
+        return set(self._script_to_output_idx[script])  # copy
+
+    def get_output_idxs_from_address(self, addr: str) -> Set[int]:
+        script = bitcoin.address_to_script(addr)
+        return self.get_output_idxs_from_scriptpubkey(script)
+
     def as_dict(self):
         if self.raw is None:
             self.raw = self.serialize()
@@ -1246,6 +1228,12 @@ class Transaction:
             'final': self.is_final(),
         }
         return out
+
+    @classmethod
+    def from_dict(cls, d):
+        tx = cls(d['hex'])
+        tx.deserialize(True)
+        return tx
 
 
 def tx_from_str(txt: str) -> str:

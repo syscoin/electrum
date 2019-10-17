@@ -9,6 +9,10 @@ LIBSECP_VERSION="b408c6a8b287003d1ade5709e6f7bc3c7f1d5be7"
 
 . $(dirname "$0")/base.sh
 
+CONTRIB_OSX="$(dirname "$(realpath "$0")")"
+CONTRIB="$CONTRIB_OSX/.."
+ROOT_FOLDER="$CONTRIB/.."
+
 src_dir=$(dirname "$0")
 cd $src_dir/../..
 
@@ -55,7 +59,7 @@ python3 -m pip install -Ir ./contrib/deterministic-build/requirements-binaries.t
 
 
 info "Installing pyinstaller"
-python3 -m pip install -I --user pyinstaller==3.4 --no-use-pep517 || fail "Could not install pyinstaller"
+python3 -m pip install -I --user pyinstaller==3.5 || fail "Could not install pyinstaller"
 
 info "Using these versions for building $PACKAGE:"
 sw_vers
@@ -65,13 +69,24 @@ pyinstaller --version
 
 rm -rf ./dist
 
-git submodule init
-git submodule update
+git submodule update --init
 
 rm  -rf $BUILDDIR > /dev/null 2>&1
 mkdir $BUILDDIR
 
-cp -R ./contrib/deterministic-build/electrum-locale/locale/ ./electrum/locale/
+info "generating locale"
+(
+    if ! which msgfmt > /dev/null 2>&1; then
+        brew install gettext
+        brew link --force gettext
+    fi
+    cd "$CONTRIB"/deterministic-build/electrum-locale
+    for i in ./locale/*; do
+        dir="$ROOT_FOLDER"/electrum/$i/LC_MESSAGES
+        mkdir -p $dir
+        msgfmt --output-file=$dir/electrum.mo $i/electrum.po || true
+    done
+) || fail "failed generating locale"
 
 
 info "Downloading libusb..."
@@ -124,9 +139,9 @@ done
 info "Building binary"
 APP_SIGN="$APP_SIGN" pyinstaller --noconfirm --ascii --clean --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
 
-info "Adding bitcoin URI types to Info.plist"
+info "Adding syscoin URI types to Info.plist"
 plutil -insert 'CFBundleURLTypes' \
-	-xml '<array><dict> <key>CFBundleURLName</key> <string>bitcoin</string> <key>CFBundleURLSchemes</key> <array><string>bitcoin</string></array> </dict></array>' \
+	-xml '<array><dict> <key>CFBundleURLName</key> <string>syscoin</string> <key>CFBundleURLSchemes</key> <array><string>syscoin</string></array> </dict></array>' \
 	-- dist/$PACKAGE.app/Contents/Info.plist \
 	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
 

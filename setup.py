@@ -52,7 +52,6 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
 
 extras_require = {
     'hardware': requirements_hw,
-    'fast': ['pycryptodomex'],
     'gui': ['pyqt5'],
 }
 extras_require['full'] = [pkg for sublist in list(extras_require.values()) for pkg in sublist]
@@ -85,10 +84,10 @@ setup(
     },
     scripts=['electrum/electrum'],
     data_files=data_files,
-    description="Lightweight Bitcoin Wallet",
-    author="Thomas Voegtlin",
-    author_email="thomasv@electrum.org",
+    description="Lightweight Syscoin Wallet",
+    author="Jagdeep Sidhu",
+    author_email="jsidhu@blockchainfoundry.co",
     license="MIT Licence",
     url="https://electrum.org",
-    long_description="""Lightweight Bitcoin Wallet""",
+    long_description="""Lightweight Syscoin Wallet""",
 )

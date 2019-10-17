@@ -133,7 +133,7 @@ class PayAssetToEdit(CompletionTextEdit, ScanQRTextEdit, Logger):
         self.payto_asset = None
         if len(lines) == 1:
             data = lines[0]
-            if data.startswith("bitcoin:"):
+            if data.startswith("syscoin:"):
                 self.scan_f(data)
                 return
             try:
@@ -207,7 +207,7 @@ class PayAssetToEdit(CompletionTextEdit, ScanQRTextEdit, Logger):
 
     def qr_input(self):
         data = super(PayAssetToEdit,self).qr_input()
-        if data.startswith("bitcoin:"):
+        if data.startswith("syscoin:"):
             self.scan_f(data)
             # TODO: update fee
 

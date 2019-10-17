@@ -1,6 +1,9 @@
 Building Mac OS binaries
 ========================
 
+✗ _This script does not produce reproducible output (yet!).
+   Please help us remedy this._
+
 This guide explains how to build Electrum binaries for macOS systems.
 
 
@@ -9,6 +12,9 @@ This guide explains how to build Electrum binaries for macOS systems.
 This needs to be done on a system running macOS or OS X. We use El Capitan (10.11.6) as building it
 on High Sierra (or later)
 makes the binaries [incompatible with older versions](https://github.com/pyinstaller/pyinstaller/issues/1191).
+
+Another factor for the minimum supported macOS version is the
+[bundled Qt version](https://github.com/spesmilo/electrum/issues/3685).
 
 Before starting, make sure that the Xcode command line tools are installed (e.g. you have `git`).
 
@@ -53,7 +59,7 @@ The usual way to distribute macOS applications is to use image files containing 
 application. Although these images can be created on a Mac with the built-in `hdiutil`,
 they are not deterministic.
 
-Instead, we use the toolchain that Bitcoin uses: genisoimage and libdmg-hfsplus.
+Instead, we use the toolchain that syscoin uses: genisoimage and libdmg-hfsplus.
 These tools do not work on macOS, so you need a separate Linux machine (or VM).
 
 Copy the Electrum.app directory over and install the dependencies, e.g.:

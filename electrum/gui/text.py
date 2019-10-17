@@ -33,7 +33,7 @@ class ElectrumGui:
         if storage.is_encrypted():
             password = getpass.getpass('Password:', stream=None)
             storage.decrypt(password)
-        self.wallet = Wallet(storage)
+        self.wallet = Wallet(storage, config=config)
         self.wallet.start_network(self.network)
         self.contacts = self.wallet.contacts
 
@@ -61,7 +61,6 @@ class ElectrumGui:
 
         self.str_recipient = ""
         self.str_description = ""
-        self.str_asset = ""
         self.str_amount = ""
         self.str_fee = ""
         self.history = None
@@ -69,15 +68,7 @@ class ElectrumGui:
         if self.network:
             self.network.register_callback(self.update, ['wallet_updated', 'network_updated'])
 
-        self.tab_names = [
-            _("History"),
-            _("Send"),
-            _("Receive"),
-            _("Addresses"),
-            _("Contacts"),
-            _("Banner"),
-            _("Assets"),
-            _("Send Assets")]
+        self.tab_names = [_("History"), _("Send"), _("Receive"), _("Addresses"), _("Contacts"), _("Banner"), _("Assets"), _("Send Assets")]
         self.num_tabs = len(self.tab_names)
 
 
@@ -126,9 +117,9 @@ class ElectrumGui:
 
         b = 0
         self.history = []
-        for tx_hash, tx_mined_status, value, balance in self.wallet.get_history():
-            if tx_mined_status.conf:
-                timestamp = tx_mined_status.timestamp
+        for hist_item in self.wallet.get_history():
+            if hist_item.tx_mined_status.conf:
+                timestamp = hist_item.tx_mined_status.timestamp
                 try:
                     time_str = datetime.datetime.fromtimestamp(timestamp).isoformat(' ')[:-3]
                 except Exception:
@@ -136,10 +127,11 @@ class ElectrumGui:
             else:
                 time_str = 'unconfirmed'
 
-            label = self.wallet.get_label(tx_hash)
+            label = self.wallet.get_label(hist_item.txid)
             if len(label) > 40:
                 label = label[0:37] + '...'
-            self.history.append( format_str%( time_str, label, format_satoshis(value, whitespaces=True), format_satoshis(balance, whitespaces=True) ) )
+            self.history.append(format_str % (time_str, label, format_satoshis(hist_item.value, whitespaces=True),
+                                              format_satoshis(hist_item.balance, whitespaces=True)))
 
 
     def print_balance(self):
@@ -178,7 +170,7 @@ class ElectrumGui:
         fmt = "%-35s  %-30s"
         messages = map(lambda addr: fmt % (addr, self.wallet.labels.get(addr,"")), self.wallet.get_addresses())
         self.print_list(messages,   fmt % ("Address", "Label"))
-
+    
     def print_assets(self):
         fmt = "%-35s  %-30s"
         messages = map(lambda asset: fmt % (asset, self.wallet.labels.get(asset, "")), self.wallet.get_assets())
@@ -199,7 +191,6 @@ class ElectrumGui:
         self.stdscr.addstr( 12, 25, _("[Clear]"), curses.A_REVERSE if self.pos%6==5 else curses.color_pair(2))
         self.maxpos = 6
 
-    #todo: this method needs updating
     def print_send_asset_tab(self):
         self.stdscr.clear()
         self.print_edit_line(3, _("Pay to"), self.str_recipient, 0, 40)
@@ -380,7 +371,7 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_address(self.str_recipient):
-            self.show_message(_('Invalid Bitcoin address'))
+            self.show_message(_('Invalid Syscoin address'))
             return
         try:
             amount = int(Decimal(self.str_amount) * COIN)
@@ -403,7 +394,7 @@ class ElectrumGui:
             tx = self.wallet.mktx([TxOutput(TYPE_ADDRESS, self.str_recipient, amount)],
                                   password, self.config, fee)
         except Exception as e:
-            self.show_message(str(e))
+            self.show_message(repr(e))
             return
 
         if self.str_description:

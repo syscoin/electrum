@@ -27,6 +27,7 @@ import os
 import json
 
 from .util import inv_dict
+from . import bitcoin
 
 
 def read_json(filename, default):
@@ -39,17 +40,21 @@ def read_json(filename, default):
     return r
 
 
+GIT_REPO_URL = "https://github.com/syscoin/electrum"
+GIT_REPO_ISSUES_URL = "https://github.com/syscoin/electrum/issues"
+
+
 class AbstractNet:
 
-    POW_TARGET_TIMESPAN = 1209600  # 60 * 60 * 24 * 14 minutes / 2 weeks
-    POW_TARGET_SPACING = 600  # 600 seconds / 10 minutes
-    POW_BLOCK_ADJUST = 2016  # 2016
-
-    CHECKPOINTS = []
+    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
 
     @classmethod
     def max_checkpoint(cls) -> int:
-        return max(0, len(cls.CHECKPOINTS) * cls.POW_BLOCK_ADJUST - 1)
+        return max(0, len(cls.CHECKPOINTS) * 2016 - 1)
+
+    @classmethod
+    def rev_genesis_bytes(cls) -> bytes:
+        return bytes.fromhex(bitcoin.rev_hex(cls.GENESIS))
 
 
 class BitcoinMainnet(AbstractNet):
@@ -63,6 +68,7 @@ class BitcoinMainnet(AbstractNet):
     DEFAULT_PORTS = {'t': '50001', 's': '50002'}
     DEFAULT_SERVERS = read_json('servers.json', {})
     CHECKPOINTS = read_json('checkpoints.json', [])
+    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 497000
 
     XPRV_HEADERS = {
         'standard':    0x0488ade4,  # xprv
@@ -81,6 +87,11 @@ class BitcoinMainnet(AbstractNet):
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
     BIP44_COIN_TYPE = 0
+    LN_REALM_BYTE = 0
+    LN_DNS_SEEDS = [
+        'nodes.lightning.directory.',
+        'lseed.bitcoinstats.com.',
+    ]
 
 
 class BitcoinTestnet(AbstractNet):
@@ -112,23 +123,11 @@ class BitcoinTestnet(AbstractNet):
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
     BIP44_COIN_TYPE = 1
-
-
-class BitcoinRegtest(BitcoinTestnet):
-
-    SEGWIT_HRP = "bcrt"
-    GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
-    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
-    CHECKPOINTS = []
-
-
-class BitcoinSimnet(BitcoinTestnet):
-
-    SEGWIT_HRP = "sb"
-    GENESIS = "683e86bd5c6d110d91b94b97137ba6bfe02dbbdb8e3dff722a669b5d69d77af6"
-    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
-    CHECKPOINTS = []
-
+    LN_REALM_BYTE = 1
+    LN_DNS_SEEDS = [
+        'test.nodes.lightning.directory.',
+        'lseed.bitcoinstats.com.',
+    ]
 
 class SyscoinMainnet(AbstractNet):
 
@@ -144,7 +143,7 @@ class SyscoinMainnet(AbstractNet):
     POW_TARGET_TIMESPAN = 21600  # 60 * 60 * 6 seconds / 6 hours
     POW_TARGET_SPACING = 60  # 60 seconds
     POW_BLOCK_ADJUST = int(POW_TARGET_TIMESPAN / POW_TARGET_SPACING)
-
+    nBridgeStartBlock = 225000
     GENESIS = "0000022642db0346b6e01c2a397471f4f12e65d4f4251ec96c1f85367a61a7ab"
     DEFAULT_PORTS = {'t': '58881', 's': '58882'}
     DEFAULT_SERVERS = read_json('servers.json', {
@@ -174,6 +173,8 @@ class SyscoinMainnet(AbstractNet):
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
     BIP44_COIN_TYPE = 57
+    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
+    LN_REALM_BYTE = 57
 
 
 class SyscoinTestnet(SyscoinMainnet):
@@ -215,7 +216,8 @@ class SyscoinTestnet(SyscoinMainnet):
         'p2wsh':       0x02575483,  # Vpub
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
-
+    BLOCK_HEIGHT_FIRST_LIGHTNING_CHANNELS = 0
+    LN_REALM_BYTE = 1
 
 class SyscoinRegtest(SyscoinTestnet):
 
@@ -227,25 +229,41 @@ class SyscoinRegtest(SyscoinTestnet):
     DEFAULT_SERVERS = read_json('servers_regtest.json', {})
     CHECKPOINTS = []
 
+class BitcoinRegtest(BitcoinTestnet):
+
+    SEGWIT_HRP = "bcrt"
+    GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
+    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
+    CHECKPOINTS = []
+    LN_DNS_SEEDS = []
+
+
+class BitcoinSimnet(BitcoinTestnet):
+
+    WIF_PREFIX = 0x64
+    ADDRTYPE_P2PKH = 0x3f
+    ADDRTYPE_P2SH = 0x7b
+    SEGWIT_HRP = "sb"
+    GENESIS = "683e86bd5c6d110d91b94b97137ba6bfe02dbbdb8e3dff722a669b5d69d77af6"
+    DEFAULT_SERVERS = read_json('servers_regtest.json', {})
+    CHECKPOINTS = []
+    LN_DNS_SEEDS = []
+
 
 # don't import net directly, import the module instead (so that net is singleton)
 net = SyscoinMainnet
 
-
 def set_simnet():
     global net
-    net = SyscoinRegtest
-
+    net = SyscoinSimnet
 
 def set_mainnet():
     global net
     net = SyscoinMainnet
 
-
 def set_testnet():
     global net
     net = SyscoinTestnet
-
 
 def set_regtest():
     global net

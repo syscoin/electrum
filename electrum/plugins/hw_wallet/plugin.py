@@ -72,7 +72,7 @@ class HW_PluginBase(BasePlugin):
         if keystore is None:
             keystore = wallet.get_keystore()
         if not is_address(address):
-            keystore.handler.show_error(_('Invalid Bitcoin Address'))
+            keystore.handler.show_error(_('Invalid Syscoin Address'))
             return False
         if not wallet.is_mine(address):
             keystore.handler.show_error(_('Address not in wallet.'))
@@ -132,14 +132,13 @@ class HW_PluginBase(BasePlugin):
         return self._ignore_outdated_fw
 
 
-def is_any_tx_output_on_change_branch(tx: Transaction):
+def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:
     if not tx.output_info:
         return False
     for o in tx.outputs():
         info = tx.output_info.get(o.address)
         if info is not None:
-            if info.address_index[0] == 1:
-                return True
+            return info.is_change
     return False
 
 
@@ -147,11 +146,11 @@ def trezor_validate_op_return_output_and_get_data(output: TxOutput) -> bytes:
     if output.type != TYPE_SCRIPT:
         raise Exception("Unexpected output type: {}".format(output.type))
     script = bfh(output.address)
-    # if not (script[0] == opcodes.OP_RETURN and
-    #         script[1] == len(script) - 2 and script[1] <= 75):
-    #     raise UserFacingException(_("Only OP_RETURN scripts, with one constant push, are supported."))
-    # if output.value != 0:
-    #     raise UserFacingException(_("Amount for OP_RETURN output must be zero."))
+    if not (script[0] == opcodes.OP_RETURN and
+            script[1] == len(script) - 2 and script[1] <= 75):
+        raise UserFacingException(_("Only OP_RETURN scripts, with one constant push, are supported."))
+    if output.value != 0:
+        raise UserFacingException(_("Amount for OP_RETURN output must be zero."))
     return script[2:]
 
 
