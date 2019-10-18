@@ -544,7 +544,7 @@ class Blockchain(Logger):
         bits = last.get('bits')
         target = self.bits_to_target(bits)
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        if index >= constants.net.nBridgeStartBlock:
+        if last.get('block_height') >= constants.net.nBridgeStartBlock:
             if nActualTimespan < 17280: # POW_TARGET_TIMESPAN * (8/10)
                 nActualTimespan = 17280;
             if nActualTimespan > 27000: # POW_TARGET_TIMESPAN * (10/8)
@@ -561,8 +561,8 @@ class Blockchain(Logger):
     @classmethod
     def bits_to_target(cls, bits: int) -> int:
         bitsN = (bits >> 24) & 0xff
-        if not (0x03 <= bitsN <= 0x1d):
-            raise Exception("First part of bits should be in [0x03, 0x1d]")
+        if not (0x03 <= bitsN <= 0x1e):
+            raise Exception("First part of bits should be in [0x03, 0x1e]")
         bitsBase = bits & 0xffffff
         if not (0x8000 <= bitsBase <= 0x7fffff):
             raise Exception("Second part of bits should be in [0x8000, 0x7fffff]")

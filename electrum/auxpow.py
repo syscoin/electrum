@@ -60,7 +60,7 @@ MAX_INDEX_PC_BACKWARDS_COMPATIBILITY = 20
 COINBASE_MERGED_MINING_HEADER = bfh('fabe') + b'mm'
 
 BLOCK_VERSION_AUXPOW_BIT = 0x100
-MIN_AUXPOW_HEIGHT = 1
+MIN_AUXPOW_HEIGHT = 1973
 
 # TODO: move this to network constants
 CHAIN_ID = 0x1000
@@ -92,7 +92,6 @@ class AuxPoWCoinbaseRootMissingError(AuxPowVerifyError):
 def auxpow_active(base_header):
     height_allows_auxpow = base_header['block_height'] >= MIN_AUXPOW_HEIGHT
     version_allows_auxpow = base_header['version'] & BLOCK_VERSION_AUXPOW_BIT
-
     return height_allows_auxpow and version_allows_auxpow
 
 def get_chain_id(base_header):
