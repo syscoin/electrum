@@ -56,6 +56,7 @@ NO_SIGNATURE = 'ff'
 PARTIAL_TXN_HEADER_MAGIC = b'EPTF\xff'
 
 
+
 class SerializationError(Exception):
     """ Thrown when there's a problem deserializing or serializing """
 
@@ -76,11 +77,14 @@ class TxOutput(NamedTuple):
     type: int
     address: str
     value: Union[int, str]  # str when the output is set to max: '!'
+TxOutput.__new__.__defaults__ = (None,)
 
 
 class TxOutputForUI(NamedTuple):
     address: str
     value: int
+TxOutputForUI.__new__.__defaults__ = (None,)
+
 
 
 class TxOutputHwInfo(NamedTuple):
@@ -540,8 +544,11 @@ def parse_output(vds, i):
     return d
 
 
-def deserialize(raw: str, force_full_parse=False) -> dict:
-    raw_bytes = bfh(raw)
+# if expect_trailing_data, returns (deserialized transaction, start position of
+# trailing data)
+def deserialize(raw: str, force_full_parse=False, expect_trailing_data=False, raw_bytes=None, expect_trailing_bytes=False, copy_input=True, start_position=0) -> dict:
+    if raw_bytes is None:
+        raw_bytes = bfh(raw)
     d = {}
     if raw_bytes[:5] == PARTIAL_TXN_HEADER_MAGIC:
         d['partial'] = is_partial = True
@@ -554,7 +561,11 @@ def deserialize(raw: str, force_full_parse=False) -> dict:
         d['partial'] = is_partial = False
     full_parse = force_full_parse or is_partial
     vds = BCDataStream()
-    vds.write(raw_bytes)
+    if copy_input:
+        vds.write(raw_bytes)
+    else:
+        vds.input = raw_bytes
+    vds.read_cursor = start_position
     d['version'] = vds.read_int32()
     n_vin = vds.read_compact_size()
     is_segwit = (n_vin == 0)
@@ -572,9 +583,17 @@ def deserialize(raw: str, force_full_parse=False) -> dict:
             txin = d['inputs'][i]
             parse_witness(vds, txin, full_parse=full_parse)
     d['lockTime'] = vds.read_uint32()
-    if vds.can_read_more():
+    if vds.can_read_more() and not expect_trailing_data:
         raise SerializationError('extra junk at the end')
-    return d
+    if not expect_trailing_data:
+        return d
+    # The caller is expecting trailing data to be present; return starting
+    # position of trailing data in bytes format
+    if expect_trailing_bytes:
+        return d, vds.read_cursor
+    # The caller is expecting trailing data to be present; return starting
+    # position of trailing data in hex format
+    raise Exception("Unimplemented: starting position for trailing data in hex format")
 
 
 # pay & redeem scripts
@@ -597,13 +616,16 @@ class Transaction:
             self.raw = self.serialize()
         return self.raw
 
-    def __init__(self, raw):
+    def __init__(self, raw, expect_trailing_data=False, raw_bytes=None, expect_trailing_bytes=False, copy_input=True, start_position=0):
         if raw is None:
             self.raw = None
+            self.raw_bytes = raw_bytes
         elif isinstance(raw, str):
             self.raw = raw.strip() if raw else None
+            self.raw_bytes = raw_bytes
         elif isinstance(raw, dict):
             self.raw = raw['hex']
+            self.raw_bytes = raw_bytes
         else:
             raise Exception("cannot initialize transaction", raw)
         self._inputs = None
@@ -615,6 +637,10 @@ class Transaction:
         self.is_partial_originally = True
         self._segwit_ser = None  # None means "don't know"
         self.output_info = None  # type: Optional[Dict[str, TxOutputHwInfo]]
+        self.expect_trailing_data = expect_trailing_data
+        self.expect_trailing_bytes = expect_trailing_bytes
+        self.copy_input = copy_input
+        self.start_position = start_position
 
     def update(self, raw):
         self.raw = raw
@@ -704,20 +730,40 @@ class Transaction:
         assert not self.is_complete()
         self.raw = None
 
+    # If expect_trailing_data == True, also returns start position of trailing
+    # data.
     def deserialize(self, force_full_parse=False):
-        if self.raw is None:
+        if self.raw is None and self.raw_bytes is None:
             return
             #self.raw = self.serialize()
         if self._inputs is not None:
             return
-        d = deserialize(self.raw, force_full_parse)
+        if self.expect_trailing_data:
+            d, start_position = deserialize(self.raw, force_full_parse, expect_trailing_data=self.expect_trailing_data, raw_bytes=self.raw_bytes, expect_trailing_bytes=self.expect_trailing_bytes, copy_input=self.copy_input, start_position=self.start_position)
+        else:
+            d = deserialize(self.raw, force_full_parse, raw_bytes=self.raw_bytes, start_position=self.start_position)
         self._inputs = d['inputs']
         self._outputs = [TxOutput(x['type'], x['address'], x['value']) for x in d['outputs']]
         self.locktime = d['lockTime']
         self.version = d['version']
         self.is_partial_originally = d['partial']
         self._segwit_ser = d['segwit_ser']
-        return d
+        if self.expect_trailing_data:
+            if self.expect_trailing_bytes:
+                if self.raw is not None:
+                    self.raw = self.raw[(2*self.start_position):(2*start_position)]
+                if self.raw_bytes is not None:
+                    self.raw_bytes = self.raw_bytes[self.start_position:start_position]
+            else:
+                if self.raw is not None:
+                    self.raw = self.raw[self.start_position:start_position]
+                if self.raw_bytes is not None:
+                    self.raw_bytes = self.raw_bytes[(self.start_position//2):(start_position//2)]
+            self.expect_trailing_data = False
+            self.start_position = 0
+            return d, start_position
+        else:
+            return d
 
     @classmethod
     def from_io(klass, inputs, outputs, *, locktime=0, version=None):
@@ -733,6 +779,7 @@ class Transaction:
     @classmethod
     def pay_script(self, output_type, addr: str) -> str:
         """Returns scriptPubKey in hex form."""
+
         if output_type == TYPE_SCRIPT:
             return addr
         elif output_type == TYPE_ADDRESS:
@@ -1259,3 +1306,5 @@ def tx_from_str(txt: str) -> str:
     tx_dict = json.loads(str(txt))
     assert "hex" in tx_dict.keys()
     return tx_dict["hex"]
+
+
