@@ -1180,7 +1180,7 @@ class Network(Logger):
     def get_local_height(self):
         return self.blockchain().height()
 
-    def export_checkpoints(self, path):
+    async def export_checkpoints(self, path: str) -> None:
         """Run manually to generate blockchain checkpoints.
         Kept for console use only.
         """

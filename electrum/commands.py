@@ -705,6 +705,11 @@ class Commands:
                 raise Exception("Unknown transaction")
         return tx.as_dict()
 
+    @command('n')
+    async def export_checkpoints(self, path):
+        """Run manually to generate blockchain checkpoints. """
+        return await self.network.export_checkpoints(path)
+
     @command('')
     async def encrypt(self, pubkey, message) -> str:
         """Encrypt a message with a public key. Use quotes if the message contains whitespaces."""
