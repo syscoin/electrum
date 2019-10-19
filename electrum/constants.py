@@ -145,11 +145,11 @@ class SyscoinMainnet(AbstractNet):
     POW_BLOCK_ADJUST = int(POW_TARGET_TIMESPAN / POW_TARGET_SPACING)
     nBridgeStartBlock = 225000
     GENESIS = "0000022642db0346b6e01c2a397471f4f12e65d4f4251ec96c1f85367a61a7ab"
-    DEFAULT_PORTS = {'t': '58881', 's': '58882'}
+    DEFAULT_PORTS = {'t': '58882', 's': '58882'}
     DEFAULT_SERVERS = read_json('servers.json', {
-        "https://127.0.0.1/": {
+        "127.0.0.1": {
             "pruning": "-",
-            "t": "58881",
+            "t": "58882",
             "s": "58882"
         }
     })
