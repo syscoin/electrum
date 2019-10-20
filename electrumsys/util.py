@@ -998,7 +998,7 @@ class TxMinedInfo(NamedTuple):
 
 def make_aiohttp_session(proxy: Optional[dict], headers=None, timeout=None):
     if headers is None:
-        headers = {'User-Agent': 'ElectrumSys'}
+        headers = {'User-Agent': 'Electrum'}
     if timeout is None:
         timeout = aiohttp.ClientTimeout(total=30)
     elif isinstance(timeout, (int, float)):

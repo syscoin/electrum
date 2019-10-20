@@ -51,8 +51,8 @@ from .logging import get_logger, Logger
 _logger = get_logger(__name__)
 
 
-REQUEST_HEADERS = {'Accept': 'application/syscoin-paymentrequest', 'User-Agent': 'ElectrumSys'}
-ACK_HEADERS = {'Content-Type':'application/syscoin-payment','Accept':'application/syscoin-paymentack','User-Agent':'ElectrumSys'}
+REQUEST_HEADERS = {'Accept': 'application/syscoin-paymentrequest', 'User-Agent': 'Electrum'}
+ACK_HEADERS = {'Content-Type':'application/syscoin-payment','Accept':'application/syscoin-paymentack','User-Agent':'Electrum'}
 
 ca_path = certifi.where()
 ca_list = None
