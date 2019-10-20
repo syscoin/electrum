@@ -1,4 +1,4 @@
-AppImage binary for Electrum
+AppImage binary for ElectrumSys
 ============================
 
 ✓ _This binary should be reproducible, meaning you should be able to generate
@@ -25,18 +25,18 @@ see [issue #5159](https://github.com/spesmilo/electrum/issues/5159).
 2. Build image
 
     ```
-    $ sudo docker build -t electrum-appimage-builder-img contrib/build-linux/appimage
+    $ sudo docker build -t electrumsys-appimage-builder-img contrib/build-linux/appimage
     ```
 
 3. Build binary
 
     ```
     $ sudo docker run -it \
-        --name electrum-appimage-builder-cont \
-        -v $PWD:/opt/electrum \
+        --name electrumsys-appimage-builder-cont \
+        -v $PWD:/opt/electrumsys \
         --rm \
-        --workdir /opt/electrum/contrib/build-linux/appimage \
-        electrum-appimage-builder-img \
+        --workdir /opt/electrumsys/contrib/build-linux/appimage \
+        electrumsys-appimage-builder-img \
         ./build.sh
     ```
 
@@ -46,4 +46,4 @@ see [issue #5159](https://github.com/spesmilo/electrum/issues/5159).
 ## FAQ
 
 ### How can I see what is included in the AppImage?
-Execute the binary as follows: `./electrum*.AppImage --appimage-extract`
+Execute the binary as follows: `./electrumsys*.AppImage --appimage-extract`

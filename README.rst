@@ -1,4 +1,4 @@
-Electrum - Lightweight Bitcoin client
+ElectrumSys - Lightweight Bitcoin client
 =====================================
 
 ::
@@ -9,15 +9,15 @@ Electrum - Lightweight Bitcoin client
   Homepage: https://electrum.org/
 
 
-.. image:: https://travis-ci.org/spesmilo/electrum.svg?branch=master
-    :target: https://travis-ci.org/spesmilo/electrum
+.. image:: https://travis-ci.org/syscoin/electrum.svg?branch=master
+    :target: https://travis-ci.org/syscoin/electrum
     :alt: Build Status
-.. image:: https://coveralls.io/repos/github/spesmilo/electrum/badge.svg?branch=master
-    :target: https://coveralls.io/github/spesmilo/electrum?branch=master
+.. image:: https://coveralls.io/repos/github/syscoin/electrum/badge.svg?branch=master
+    :target: https://coveralls.io/github/syscoin/electrum?branch=master
     :alt: Test coverage statistics
 .. image:: https://d322cqt584bo4o.cloudfront.net/electrum/localized.svg
     :target: https://crowdin.com/project/electrum
-    :alt: Help translate Electrum online
+    :alt: Help translate ElectrumSys online
 
 
 
@@ -26,30 +26,30 @@ Electrum - Lightweight Bitcoin client
 Getting started
 ===============
 
-Electrum is a pure python application. If you want to use the
+ElectrumSys is a pure python application. If you want to use the
 Qt interface, install the Qt dependencies::
 
     sudo apt-get install python3-pyqt5
 
 If you downloaded the official package (tar.gz), you can run
-Electrum from its root directory without installing it on your
+ElectrumSys from its root directory without installing it on your
 system; all the python dependencies are included in the 'packages'
-directory. To run Electrum from its root directory, just do::
+directory. To run ElectrumSys from its root directory, just do::
 
-    ./run_electrum
+    ./run_electrumsys
 
-You can also install Electrum on your system, by running this command::
+You can also install ElectrumSys on your system, by running this command::
 
     sudo apt-get install python3-setuptools
     python3 -m pip install .[fast]
 
 This will download and install the Python dependencies used by
-Electrum instead of using the 'packages' directory.
+ElectrumSys instead of using the 'packages' directory.
 The 'fast' extra contains some optional dependencies that we think
 are often useful but they are not strictly needed.
 
 If you cloned the git repository, you need to compile extra files
-before you can run Electrum. Read the next section, "Development
+before you can run ElectrumSys. Read the next section, "Development
 Version".
 
 
@@ -59,7 +59,7 @@ Development version
 
 Check out the code from GitHub::
 
-    git clone git://github.com/spesmilo/electrum.git
+    git clone git://github.com/syscoin/electrum.git
     cd electrum
     git submodule update --init
 
@@ -71,7 +71,7 @@ Run install (this should install dependencies)::
 Compile the protobuf description file::
 
     sudo apt-get install protobuf-compiler
-    protoc --proto_path=electrum --python_out=electrum electrum/paymentrequest.proto
+    protoc --proto_path=electrumsys --python_out=electrumsys electrumsys/paymentrequest.proto
 
 Create translations (optional)::
 
@@ -111,4 +111,4 @@ See :code:`contrib/build-wine/README.md`.
 Android
 -------
 
-See :code:`electrum/gui/kivy/Readme.md`.
+See :code:`electrumsys/gui/kivy/Readme.md`.

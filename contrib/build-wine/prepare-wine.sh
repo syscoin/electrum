@@ -44,7 +44,7 @@ cd "$CACHEDIR"
 info "Installing Python."
 # note: you might need "sudo apt-get install dirmngr" for the following
 # keys from https://www.python.org/downloads/#pubkeys
-KEYRING_PYTHON_DEV="keyring-electrum-build-python-dev.gpg"
+KEYRING_PYTHON_DEV="keyring-electrumsys-build-python-dev.gpg"
 gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/7ED10B6531D7C8E1BC296021FC624643487034E5.asc
 PYTHON_DOWNLOADS="$CACHEDIR/python$PYTHON_VERSION"
 mkdir -p "$PYTHON_DOWNLOADS"
@@ -86,8 +86,8 @@ info "Building PyInstaller."
 # we build our own PyInstaller boot loader as the default one has high
 # anti-virus false positives
 (
-    cd "$WINEPREFIX/drive_c/electrum"
-    ELECTRUM_COMMIT_HASH=$(git rev-parse HEAD)
+    cd "$WINEPREFIX/drive_c/electrumsys"
+    ELECTRUMSYS_COMMIT_HASH=$(git rev-parse HEAD)
     cd "$CACHEDIR"
     rm -rf pyinstaller
     mkdir pyinstaller
@@ -100,7 +100,7 @@ info "Building PyInstaller."
     rm -fv PyInstaller/bootloader/Windows-*/run*.exe || true
     # add reproducible randomness. this ensures we build a different bootloader for each commit.
     # if we built the same one for all releases, that might also get anti-virus false positives
-    echo "const char *electrum_tag = \"tagged by Electrum@$ELECTRUM_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
+    echo "const char *electrumsys_tag = \"tagged by ElectrumSys@$ELECTRUMSYS_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
     pushd bootloader
     # cross-compile to Windows using host python
     python3 ./waf all CC=i686-w64-mingw32-gcc CFLAGS="-Wno-stringop-overflow -static"
