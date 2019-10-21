@@ -31,13 +31,14 @@ import json
 import shutil
 import weakref
 import csv
+import aiorpcx
 from decimal import Decimal
 import base64
 from functools import partial
 import queue
 import asyncio
 from typing import Optional, TYPE_CHECKING
-
+from aiorpcx import RPCError
 from PyQt5.QtGui import QPixmap, QKeySequence, QIcon, QCursor, QFont
 from PyQt5.QtCore import Qt, QRect, QStringListModel, QSize, pyqtSignal
 from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget,
@@ -1893,7 +1894,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             tx_raw = self.wallet.make_unsigned_assetsend_transaction(self.config, from_address, to_address,
                                                                      asset_guid, amount_units, memo)
             tx = Transaction(tx_raw['hex'])
-            tx.deserialize(True, self.wallet, unsigned_segwit=True)
+            tx.deserialize(force_full_parse=True, wallet=self.wallet)  # need to parse inputs
         except (NotEnoughFunds, NoDynamicFeeEstimates) as e:
             self.show_message(str(e))
             return
@@ -1903,10 +1904,10 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         except RPCError as e:
             if isinstance(e, aiorpcx.jsonrpc.RPCError) and "Not enough outputs" in e.message:
                 self.show_error(_("in order to send assets you must first fund your asset address with" 
-                                  " Syscoin to pay for gas fees. Please send at least 1 SYS to this address"))
+                                  " Syscoin to pay for gas fees. Please send a small amount (less than 1 SYS) to this address"))
                 return
             self.show_error(str(e))
-            raise
+            return
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
             self.show_message(str(e))

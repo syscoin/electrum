@@ -664,7 +664,7 @@ class Transaction:
             return [], []
         x_pubkeys = txin['x_pubkeys']
         pubkeys = txin.get('pubkeys')
-        if pubkeys is None:
+        if pubkeys is None or len(pubkeys) == 0:
             pubkeys = [xpubkey_to_pubkey(x) for x in x_pubkeys]
             pubkeys, x_pubkeys = zip(*sorted(zip(pubkeys, x_pubkeys)))
             txin['pubkeys'] = pubkeys = list(pubkeys)
@@ -716,8 +716,8 @@ class Transaction:
         txin['witness'] = None    # force re-serialization
         self.raw = None
 
-    def add_inputs_info(self, wallet: 'Abstract_Wallet') -> None:
-        if self.is_complete():
+    def add_inputs_info(self, wallet: 'Abstract_Wallet', force=False) -> None:
+        if self.is_complete() and force is False:
             return
         for txin in self.inputs():
             wallet.add_input_info(txin)
@@ -732,7 +732,7 @@ class Transaction:
 
     # If expect_trailing_data == True, also returns start position of trailing
     # data.
-    def deserialize(self, force_full_parse=False):
+    def deserialize(self, force_full_parse=False, wallet=None):
         if self.raw is None and self.raw_bytes is None:
             return
             #self.raw = self.serialize()
@@ -748,6 +748,11 @@ class Transaction:
         self.version = d['version']
         self.is_partial_originally = d['partial']
         self._segwit_ser = d['segwit_ser']
+
+        if wallet is not None:
+            self.add_inputs_info(wallet, True)
+            self._segwit_ser = True # asset tx should be using segwit
+
         if self.expect_trailing_data:
             if self.expect_trailing_bytes:
                 if self.raw is not None:

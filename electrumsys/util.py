@@ -717,14 +717,14 @@ def time_difference(distance_in_time, include_seconds):
 mainnet_block_explorers = {
     'Blockchain Foundry Explorer': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
-    'system default': ('blockchain:/',
+    'system default': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
 
 testnet_block_explorers = {
     'Blockchain Foundry Explorer': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
-    'system default': ('blockchain:/',
+    'system default': ('http://explorer.blockchainfoundry.co/',
                         {'tx': 'tx/', 'addr': 'address/'}),
 }
 
@@ -734,7 +734,7 @@ def block_explorer_info():
 
 def block_explorer(config: 'SimpleConfig') -> str:
     from . import constants
-    default_ = 'Blockstream.info'
+    default_ = 'explorer.blockchainfoundry.co'
     be_key = config.get('block_explorer', default_)
     be = block_explorer_info().get(be_key)
     return be_key if be is not None else default_
