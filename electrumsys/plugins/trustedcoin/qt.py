@@ -170,7 +170,7 @@ class Plugin(TrustedCoinPlugin):
         logo = QLabel()
         logo.setPixmap(QPixmap(icon_path("trustedcoin-status.png")))
         msg = _('This wallet is protected by TrustedCoin\'s two-factor authentication.') + '<br/>'\
-              + _("For more information, visit") + " <a href=\"https://api.trustedcoin.com/#/electrumsys-help\">https://api.trustedcoin.com/#/electrumsys-help</a>"
+              + _("For more information, visit") + " <a href=\"https://api.trustedcoin.com/#/electrum-help\">https://api.trustedcoin.com/#/electrum-help</a>"
         label = QLabel(msg)
         label.setOpenExternalLinks(1)
 

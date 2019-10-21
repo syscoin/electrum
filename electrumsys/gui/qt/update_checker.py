@@ -19,8 +19,8 @@ from electrumsys.logging import Logger
 
 
 class UpdateCheck(QWidget, Logger):
-    url = "https://electrumsys.org/version"
-    download_url = "https://electrumsys.org/#download"
+    url = "https://electrum.syscoin.org/version"
+    download_url = "https://electrum.syscoin.org/#download"
 
     VERSION_ANNOUNCEMENT_SIGNING_KEYS = (
         "13xjmVAB1EATPP8RshTE8S8sNwwSUM9p1P",

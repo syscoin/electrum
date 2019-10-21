@@ -88,6 +88,6 @@ setup(
     author="Jagdeep Sidhu",
     author_email="jsidhu@blockchainfoundry.co",
     license="MIT Licence",
-    url="https://electrumsys.org",
+    url="https://electrum.syscoin.org",
     long_description="""Lightweight Syscoin Wallet""",
 )

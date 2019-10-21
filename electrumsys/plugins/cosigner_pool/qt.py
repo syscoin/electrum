@@ -44,7 +44,7 @@ import sys
 import traceback
 
 
-server = ServerProxy('https://cosigner.electrumsys.org/', allow_none=True)
+server = ServerProxy('https://cosigner.electrum.org/', allow_none=True)
 
 
 class Listener(util.DaemonThread):

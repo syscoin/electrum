@@ -78,7 +78,7 @@ certificate/key) and one or multiple trusted verifiers:
 
 | Signer and verifiers:                                                                         |
 |-----------------------------------------------------------------------------------------------|
-| Upload signatures to 'electrumsys-signatures' repo, as `$version/$filename.$builder.asc`         |
+| Upload signatures to 'electrum-signatures' repo, as `$version/$filename.$builder.asc`         |
 
 
 
