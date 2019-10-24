@@ -48,7 +48,7 @@ from .util import (NotEnoughFunds, UserCancelled, profiler,
                    WalletFileException, BitcoinException,
                    InvalidPassword, format_time, timestamp_to_datetime, Satoshis,
                    Fiat, bfh, bh2u, TxMinedInfo, quantize_feerate, create_bip21_uri, OrderedDictWithIndex)
-from .util import PR_TYPE_ONCHAIN, PR_TYPE_LN
+from .util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
 from .simple_config import SimpleConfig
 from .bitcoin import (COIN, TYPE_ADDRESS, is_address, address_to_script,
                       is_minikey, relayfee, dust_threshold)
@@ -883,22 +883,33 @@ class Abstract_Wallet(AddressSynchronizer):
         max_change = self.max_change_outputs if self.multiple_change else 1
         return change_addrs[:max_change]
 
-    def make_unsigned_assetsend_transaction(self, config, from_address, asset_guid, outputs):
+    def make_unsigned_assetsend_transaction(self, asset_guid, outputs):
         tx = None
         if outputs is None or len(outputs) is 0:
             raise Exception("No outputs defined")
         if len(outputs) > 1:
             raise Exception("More than one output for asset send is not supported by electrum at this moment")
-        amount = outputs[0].value
+        amount = None
+        if outputs[0].value is not '!':
+            amount = int(outputs[0].value)
+        
         to_address = outputs[0].address
         from_address = None
+        precision = None
         # find an address that holds enough asset to send from
         for x in range(len(self.asset_list)):
-            if self.asset_list[x]['asset_guid'] == asset_guid and self.asset_list[x]['balance'] >= amount:
+            if self.asset_list[x]['asset_guid'] == asset_guid:
+                precision = self.asset_list[x]['precision']
+                balance = int(self.asset_list[x]['balance'])
+                if amount is None:
+                    amount = balance
+                elif balance < amount:
+                    continue
                 from_address = self.asset_list[x]['address']
                 break
-        if from_address is None:
-            raise NotEnoughFunds()       
+        if from_address is None or precision is None:
+            raise NotEnoughFunds()   
+        amount = amount / pow(10, precision)    
         if self.network and self.network.asyncio_loop.is_running():
             raw_tx = None
             try:
@@ -915,9 +926,9 @@ class Abstract_Wallet(AddressSynchronizer):
             except RequestTimedOut as e:
                 self.logger.info("error creating assetsend tx: {}".format(e))
                 raise e
-            run_hook('make_unsigned_assetsend_transaction', self, raw_tx)
             tx = Transaction(raw_tx)
-            tx.deserialize(force_full_parse=True, wallet=self.wallet)  # need to parse inputs
+            tx.deserialize(force_full_parse=True, wallet=self)  # need to parse inputs
+            run_hook('make_unsigned_assetsend_transaction', self, tx)
         return tx
 
     def make_unsigned_transaction(self, coins, outputs, fixed_fee=None,
@@ -1000,7 +1011,7 @@ class Abstract_Wallet(AddressSynchronizer):
                 outputs[i_max] = outputs[i_max]._replace(value=amount)
                 tx = Transaction.from_io(coins, outputs[:])
         else:
-            tx = self.make_unsigned_assetsend_transaction(from_address, asset_guid, outputs)
+            tx = self.make_unsigned_assetsend_transaction(asset_guid, outputs)
         # Timelock tx to current height.
         tx.locktime = get_locktime_for_new_transaction(self.network)
         run_hook('make_unsigned_transaction', self, tx)

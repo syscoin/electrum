@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import QHeaderView, QMenu, QVBoxLayout, QGridLayout, QLabel
 from electrumsys.i18n import _
 from electrumsys.util import format_time, PR_UNPAID, PR_PAID, PR_INFLIGHT
 from electrumsys.util import get_request_status
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_LN
+from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
 from electrumsys.lnutil import format_short_channel_id
 from electrumsys.bitcoin import COIN
 from electrumsys import constants
@@ -85,7 +85,9 @@ class InvoiceList(MyTreeView):
             return
         status_item = model.item(row, self.Columns.STATUS)
         status, status_str = get_request_status(req)
-        log = self.parent.wallet.lnworker.logs.get(key)
+        log = None;
+        if self.parent.wallet.has_lightning():
+            log = self.parent.wallet.lnworker.logs.get(key)
         if log and status == PR_INFLIGHT:
             status_str += '... (%d)'%len(log)
         status_item.setText(status_str)
@@ -105,6 +107,11 @@ class InvoiceList(MyTreeView):
             elif invoice_type == PR_TYPE_ONCHAIN:
                 key = item['id']
                 icon_name = 'syscoin.png'
+                if item.get('bip70'):
+                    icon_name = 'seal.png'
+            elif invoice_type == PR_TYPE_ONCHAIN_ASSET:
+                key = item['id']
+                icon_name = 'tab_assets.png'
                 if item.get('bip70'):
                     icon_name = 'seal.png'
             else:
@@ -154,7 +161,9 @@ class InvoiceList(MyTreeView):
         menu.addAction(_("Details"), lambda: self.parent.show_invoice(key))
         if invoice['status'] == PR_UNPAID:
             menu.addAction(_("Pay"), lambda: self.parent.do_pay_invoice(invoice))
-        log = self.parent.wallet.lnworker.logs.get(key)
+        log = None;
+        if self.parent.wallet.has_lightning():
+            log = self.parent.wallet.lnworker.logs.get(key)
         if log:
             menu.addAction(_("View log"), lambda: self.show_log(key, log))
         menu.addAction(_("Delete"), lambda: self.parent.delete_invoice(key))

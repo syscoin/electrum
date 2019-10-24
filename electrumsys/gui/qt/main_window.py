@@ -63,7 +63,7 @@ from electrumsys.util import (format_time, format_satoshis, format_fee_satoshis,
                            UnknownBaseUnit, DECIMAL_POINT_DEFAULT, UserFacingException,
                            get_new_wallet_name, send_exception_to_crash_reporter,
                            InvalidBitcoinURI, InvoiceError)
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_LN
+from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
 from electrumsys.lnutil import PaymentFailure, SENT, RECEIVED
 from electrumsys.transaction import Transaction, TxOutput
 from electrumsys.address_synchronizer import AddTransactionException
@@ -2235,7 +2235,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         self.utxo_list.update()
         self.update_fee()
         
-    def populate_asset_picklist(self, amount = None):
+    def populate_asset_picklist(self, amount: int = None):
         self.updating_asset_list = True
         asset_list = self.wallet.get_assets()
 
@@ -2261,7 +2261,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                     if asset_list[idx]['asset_guid'] == current_symbol_guid \
                        and current_symbol_address is None or asset_list[idx]['address'] == current_symbol_address:
                         current_symbol_index_backup = idx + 1
-                        if amount is None or asset_list[idx]['balance'] >= amount:
+                        if amount is None or int(asset_list[idx]['balance']) >= amount:
                             current_symbol_index = idx + 1
                             break
                 if current_symbol_index is -1 and current_symbol_index_backup is not -1:

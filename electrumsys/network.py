@@ -524,14 +524,17 @@ class Network(Logger):
         request_data['addresses'] = owning_addresses
         server_result = await session.send_request('blockchain.address.list_assets', request_data)
         for as_addr in server_result:
-            assets_result_ += [{
+            assetObj = {
                 'symbol': str(get_value_or_blank(as_addr, 'symbol')),
                 'name': str(get_value_or_blank(as_addr, 'symbol')),
                 'asset_guid': str(get_value_or_blank(as_addr, 'asset_guid')),
-                'balance': int(float(as_addr['balance']) * 100000000),
+                'balance': float(as_addr['balance']),
                 'address': get_value_or_blank(as_addr, 'address'),
                 'precision': int(get_value_or_blank(as_addr, 'precision')),
-            }]
+            }
+            assetObj['balance'] = int(assetObj['balance'] * pow(10, assetObj['precision']))
+            assets_result_ += [assetObj]
+            
 
         return assets_result_
 
