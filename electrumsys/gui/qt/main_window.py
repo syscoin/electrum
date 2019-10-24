@@ -283,23 +283,23 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
 
     def setAssetState(self, asset):
         if asset is True:
-            if self.amount_e.getTokenSymbol() != self.base_asset_unit():
+            if self.amount_e.getTokenSymbol() != self.base_asset_unit() or self.asset_e.currentIndex() <= 0:
                 self.amount_e.setAssetMode(self.base_asset_unit(), self.get_asset_decimal_point)
-                self.amount_e.setAmount(self.selected_asset_balance)
+                if self.asset_e.currentIndex() >= 0:
+                    self.amount_e.setAmount(self.selected_asset_balance)
             else:
                 return
-        elif self.amount_e.getTokenSymbol() != "syscoin":
+        elif self.asset_e.currentIndex() is not 0 or self.selected_asset_idx is not 0:
             self.selected_asset_symbol = None
             self.selected_asset_guid = None
             self.selected_asset_address = None
             self.selected_asset_balance = 0
             self.selected_asset_decimal_point = self.decimal_point
             self.selected_asset_idx = 0
-            self.amount_e.setSyscoinMode(self.get_decimal_point)   
-            self.amount_e.setAmount(0)
-        elif self.asset_e.currentIndex() is not 0:
-            self.asset_e.setCurrentIndex(0)
-            return
+            self.amount_e.setSyscoinMode(self.get_decimal_point)
+            if self.asset_e.currentIndex() is 0:
+                self.amount_e.setAmount(0)
+
         self.asset_e.setCurrentIndex(self.selected_asset_idx)
         if self.fx.is_enabled() and self.fx.get_base_currency() is not self.amount_e.getTokenSymbol():
             self.fx.set_base_currency(self.amount_e.getTokenSymbol())   
@@ -860,12 +860,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             amount = edit.get_amount()
             rate = self.fx.exchange_rate() if self.fx else Decimal('NaN')
             if rate.is_nan() or amount is None:
-                if edit is fiat_e:
-                    btc_e.setText("")
-                    if fee_e:
-                        fee_e.setText("")
-                else:
-                    fiat_e.setText("")
+                return
             else:
                 if edit is fiat_e:
                     btc_e.follows = True
@@ -1260,25 +1255,19 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             if self.asset_e.count() <= 0 or self.updating_asset_list is True:
                 return;
             asset_list = self.wallet.get_assets()
-            self.selected_asset_idx = state
             index = state - 1
             if index < 0:
                 index = 0
-            if state == -1:
-                self.selected_asset_guid =None
-                self.selected_asset_symbol = None
-                self.selected_asset_address = None
-                self.selected_asset_balance = 0
+            if state <= 0:
                 self.setAssetState(False)
-            elif state > 0 and index < len(asset_list):
+            elif index < len(asset_list):
+                self.selected_asset_idx = state
                 self.selected_asset_guid = asset_list[index]['asset_guid']
                 self.selected_asset_symbol = asset_list[index]['symbol']
                 self.selected_asset_address = asset_list[index]['address']
                 self.selected_asset_balance = asset_list[index]['balance']
                 self.selected_asset_decimal_point = asset_list[index]['precision']
                 self.setAssetState(True)
-            elif state == 0:
-                self.setAssetState(False)
 
         self.asset_e = QComboBox(self)
         self.asset_e.currentIndexChanged.connect(toggle_asset_change)
