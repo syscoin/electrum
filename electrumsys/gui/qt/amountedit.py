@@ -85,11 +85,11 @@ class BTCAmountEdit(AmountEdit):
 
     def __init__(self, decimal_point, is_int=False, parent=None):
         AmountEdit.__init__(self, self._base_unit, is_int, parent)
-        self.token_symbol = "Syscoin"
+        self.token_symbol = "syscoin"
         self.decimal_point = decimal_point
 
     def _base_unit(self):
-        if self.token_symbol is "Syscoin":
+        if self.token_symbol is "syscoin":
             return decimal_point_to_base_unit_name(self.decimal_point())
         else:
             return decimal_point_to_base_asset_unit_name(self.token_symbol, self.decimal_point())
@@ -99,9 +99,12 @@ class BTCAmountEdit(AmountEdit):
         self.decimal_point = decimal_point
     
     def setSyscoinMode(self, decimal_point):
-        self.token_symbol = "Syscoin"
+        self.token_symbol = "syscoin"
         self.decimal_point = decimal_point
 
+    def getTokenSymbol(self):
+        return self.token_symbol
+    
     def get_amount(self):
         try:
             x = Decimal(str(self.text()))

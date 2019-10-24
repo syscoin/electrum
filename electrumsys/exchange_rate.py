@@ -23,6 +23,7 @@ from .logging import Logger
 
 DEFAULT_ENABLED = True
 DEFAULT_CURRENCY = "USD"
+DEFAULT_BASE_CURRENCY = "syscoin"
 DEFAULT_EXCHANGE = "CoinGecko"  # default exchange should ideally provide historical rates
 
 
@@ -74,10 +75,10 @@ class ExchangeBase(Logger):
     def name(self):
         return self.__class__.__name__
 
-    async def update_safe(self, ccy):
+    async def update_safe(self, ccy, bccy='syscoin'):
         try:
             self.logger.info(f"getting fx quotes for {ccy}")
-            self.quotes = await self.get_rates(ccy)
+            self.quotes = await self.get_rates(ccy, bccy)
             self.logger.info("received fx quotes")
         except asyncio.CancelledError:
             # CancelledError must be passed-through for cancellation to work
@@ -138,11 +139,11 @@ class ExchangeBase(Logger):
     async def request_history(self, ccy):
         raise NotImplementedError()  # implemented by subclasses
 
-    async def get_rates(self, ccy):
+    async def get_rates(self, ccy, bccy='syscoin'):
         raise NotImplementedError()  # implemented by subclasses
 
-    async def get_currencies(self):
-        rates = await self.get_rates('')
+    async def get_currencies(self, bccy='syscoin'):
+        rates = await self.get_rates('', bccy)
         return sorted([str(a) for (a, b) in rates.items() if b is not None and len(a)==3])
 
 
@@ -288,14 +289,14 @@ class Coinbase(ExchangeBase):
 
 class CoinCap(ExchangeBase):
 
-    async def get_rates(self, ccy):
+    async def get_rates(self, ccy, bccy='syscoin'):
         # CoinCap rates API is broken for Syscoin.  Use history API instead.
         """
         json = await self.get_json('api.coincap.io', '/v2/rates/bitcoin/')
         return {'USD': Decimal(json['data']['rateUsd'])}
         """
         json = await self.get_json('api.coincap.io',
-                                      '/v2/assets/syscoin/history?interval=d1&limit=2000')
+                                      '/v2/assets/{}/history?interval=d1&limit=2000'.format(bccy))
         return {'USD': Decimal(json['data'][-1]['priceUsd'])}
 
     def history_ccys(self):
@@ -344,14 +345,14 @@ class CoinDesk(ExchangeBase):
 
 class CoinGecko(ExchangeBase):
 
-    async def get_rates(self, ccy):
+    async def get_rates(self, ccy, bccy='syscoin'):
         # CoinGecko exchange_rates API is unavailable for Syscoin.  Use coins API instead.
         """
         json = await self.get_json('api.coingecko.com', '/api/v3/exchange_rates')
         return dict([(ccy.upper(), Decimal(d['value']))
                      for ccy, d in json['rates'].items()])
         """
-        json = await self.get_json('api.coingecko.com', '/api/v3/coins/syscoin')
+        json = await self.get_json('api.coingecko.com', '/api/v3/coins/{}'.format(bccy))
         return dict([(ccy.upper(), Decimal(d))
                      for ccy, d in json['market_data']['current_price'].items()])
 
@@ -535,6 +536,7 @@ class FxThread(ThreadJob):
         if self.network:
             self.network.register_callback(self.set_proxy, ['proxy_set'])
         self.ccy = self.get_currency()
+        self.bccy = self.get_base_currency()
         self.history_used_spot = False
         self.ccy_combo = None
         self.hist_checkbox = None
@@ -583,7 +585,7 @@ class FxThread(ThreadJob):
             except TaskTimeout:
                 pass
             if self.is_enabled():
-                await self.exchange.update_safe(self.ccy)
+                await self.exchange.update_safe(self.ccy, self.bccy)
 
     def is_enabled(self):
         return bool(self.config.get('use_exchange_rate', DEFAULT_ENABLED))
@@ -614,6 +616,10 @@ class FxThread(ThreadJob):
         '''Use when dynamic fetching is needed'''
         return self.config.get("currency", DEFAULT_CURRENCY)
 
+    def get_base_currency(self):
+        '''Use when dynamic fetching is needed'''
+        return self.config.get("base_currency", DEFAULT_BASE_CURRENCY)
+
     def config_exchange(self):
         return self.config.get('use_exchange', DEFAULT_EXCHANGE)
 
@@ -623,6 +629,12 @@ class FxThread(ThreadJob):
     def set_currency(self, ccy):
         self.ccy = ccy
         self.config.set_key('currency', ccy, True)
+        self.trigger_update()
+        self.on_quotes()
+
+    def set_base_currency(self, bccy):
+        self.bccy = bccy
+        self.config.set_key('base_currency', bccy, True)
         self.trigger_update()
         self.on_quotes()
 

@@ -283,17 +283,26 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
 
     def setAssetState(self, asset):
         if asset is True:
-            self.amount_e.setAssetMode(self.base_asset_unit(), self.get_asset_decimal_point)
-            self.amount_e.setAmount(self.selected_asset_balance)
-        else:
+            if self.amount_e.getTokenSymbol() != self.base_asset_unit():
+                self.amount_e.setAssetMode(self.base_asset_unit(), self.get_asset_decimal_point)
+                self.amount_e.setAmount(self.selected_asset_balance)
+            else:
+                return
+        elif self.amount_e.getTokenSymbol() != "syscoin":
             self.selected_asset_symbol = None
             self.selected_asset_guid = None
             self.selected_asset_address = None
             self.selected_asset_balance = 0
             self.selected_asset_decimal_point = self.decimal_point
-            self.selected_asset_idx = -1
+            self.selected_asset_idx = 0
             self.amount_e.setSyscoinMode(self.get_decimal_point)   
-            self.amount_e.setAmount(0)      
+            self.amount_e.setAmount(0)
+        elif self.asset_e.currentIndex() is not 0:
+            self.asset_e.setCurrentIndex(0)
+            return
+        self.asset_e.setCurrentIndex(self.selected_asset_idx)
+        if self.fx.is_enabled() and self.fx.get_base_currency() is not self.amount_e.getTokenSymbol():
+            self.fx.set_base_currency(self.amount_e.getTokenSymbol())   
 
     def on_assets_updated(self, assets, notify_flag=True):
         self.populate_asset_picklist()
@@ -927,7 +936,6 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 text = _("Not connected")
             icon = read_QIcon("status_disconnected.png")
 
-        self.populate_asset_picklist()
 
         self.tray.setToolTip("%s (%s)" % (text, self.wallet.basename()))
         self.balance_label.setText(text)
@@ -1667,14 +1675,13 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.selected_asset_balance = t['balance']
                 self.selected_asset_decimal_point = t['precision']
                 self.setAssetState(True)
-                self.asset_e.setCurrentIndex(self.selected_asset_idx)
                 break
             idx = idx + 1
         self.updating_asset_list = False
 
     def set_pay_from(self, coins):
         self.pay_from = list(coins)
-        self.selected_asset_idx = -1
+        self.selected_asset_idx = 0
         self.populate_asset_picklist()
         self.redraw_from_list()
 
@@ -2281,7 +2288,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.selected_asset_idx = 1
 
             if current_symbol_index is not -1:
-                self.asset_e.setCurrentIndex(current_symbol_index)
+                self.selected_asset_idx = current_symbol_index
                 self.setAssetState(True)
             else:
                 self.setAssetState(False)
