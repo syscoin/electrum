@@ -137,7 +137,7 @@ def base_unit_name_to_decimal_point(unit_name: str) -> int:
 
 
 def decimal_point_to_base_asset_unit_name(au: str, dp: int) -> str:
-    # e.g. 8 -> "SYS"
+    # e.g. 8 -> "AGX"
     try:
         bau = base_asset_units_inverse[dp]
         bau = "" if bau == "-" else bau
@@ -147,7 +147,7 @@ def decimal_point_to_base_asset_unit_name(au: str, dp: int) -> str:
 
 
 def base_asset_unit_name_to_decimal_point(au: str, unit_name: str) -> int:
-    # e.g. "SYS" -> 8
+    # e.g. "AGX" -> 8
     try:
         unit_name = unit_name.replace(au, "")
         unit_name = "-" if unit_name == "" else unit_name

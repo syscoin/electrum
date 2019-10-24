@@ -78,7 +78,7 @@ from electrumsys.util import PR_PAID, PR_UNPAID, PR_INFLIGHT, PR_FAILED
 from electrumsys.util import pr_expiration_values
 
 from .exception_window import Exception_Hook
-from .amountedit import AmountEdit, BTCAmountEdit, TokenAmountEdit, MyLineEdit, FeerateEdit
+from .amountedit import AmountEdit, BTCAmountEdit, MyLineEdit, FeerateEdit
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .transaction_dialog import show_transaction
@@ -279,6 +279,14 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             self._update_check_thread = UpdateCheckThread(self)
             self._update_check_thread.checked.connect(on_version_received)
             self._update_check_thread.start()
+
+    def setAssetState(self, asset):
+        if asset is True:
+            self.amount_e.setAssetMode(self.base_asset_unit(), self.get_asset_decimal_point)
+            self.amount_e.setAmount(self.selected_asset_balance)
+        else:                                              
+            self.amount_e.setSyscoinMode(self.get_decimal_point)   
+            self.amount_e.setAmount(0)       
 
     def on_assets_updated(self, assets, notify_flag=True):
         self.populate_asset_picklist()
@@ -817,6 +825,9 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
     def get_decimal_point(self):
         return self.decimal_point
 
+    def get_asset_decimal_point(self):
+        return self.selected_asset_decimal_point
+
     def base_unit(self):
         return decimal_point_to_base_unit_name(self.decimal_point)
 
@@ -1229,7 +1240,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         from .paytoedit import PayToEdit
 
         self.selected_asset_idx = 0
-
+       
         def toggle_asset_change(state):
             asset_list = self.wallet.get_assets()
             self.selected_asset_idx = state
@@ -1241,24 +1252,19 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.selected_asset_symbol = None
                 self.selected_asset_address = None
                 self.selected_asset_balance = 0
-                self.amount_e = BTCAmountEdit(self.get_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
+                self.setAssetState(False)
             elif state > 0 and index < len(asset_list):
                 self.selected_asset_guid = asset_list[index]['asset_guid']
                 self.selected_asset_symbol = asset_list[index]['symbol']
                 self.selected_asset_address = asset_list[index]['address']
                 self.selected_asset_balance = asset_list[index]['balance']
                 self.selected_asset_decimal_point = asset_list[index]['precision']
-                print("set to token on asset change")
-                self.amount_e = TokenAmountEdit(self.base_asset_unit(), self.selected_asset_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
-                self.amount_e.setAmount(float(self.format_amount(self.selected_asset_balance,
-                                                                       whitespaces=True)))
+                self.setAssetState(True)
             else:
-                self.amount_e = BTCAmountEdit(self.get_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
+                self.setAssetState(False)
         self.asset_e = QComboBox(self)
         self.asset_e.currentIndexChanged.connect(toggle_asset_change)
+        self.amount_e = BTCAmountEdit(self.get_decimal_point)
         
 
         msg = _('The Asset to send.') + '\n\n' \
@@ -1266,8 +1272,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         assete_label = HelpLabel(_('Asset'), msg)
         grid.addWidget(assete_label, 1, 0)
         grid.addWidget(self.asset_e, 1, 1, 1, -1)
-        self.populate_asset_picklist()
-
+        
         self.payto_e = PayToEdit(self)
         msg = _('Recipient of the funds.') + '\n\n'\
               + _('You may enter a Syscoin address, a label from your list of contacts (a list of completions will be proposed), or an alias (email-like address that forwards to a Syscoin address)')
@@ -1440,6 +1445,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             #self.max_button.setEnabled(enable)
         self.amount_e.textEdited.connect(reset_max)
         self.fiat_send_e.textEdited.connect(reset_max)
+            
 
         def entry_changed():
             text = ""
@@ -1500,6 +1506,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         vbox.setStretchFactor(self.invoice_list, 1000)
         w.searchable_list = self.invoice_list
         run_hook('create_send_tab', grid)
+        self.populate_asset_picklist()
         return w
 
     def spend_max(self):
@@ -1645,10 +1652,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.selected_asset_address = t['address']
                 self.selected_asset_balance = t['balance']
                 self.selected_asset_decimal_point = t['precision']
-                self.amount_e = TokenAmountEdit(self.selected_asset_symbol, self.selected_asset_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
-                self.amount_e.setAmount(float(self.format_amount(self.selected_asset_balance,
-                                                                       whitespaces=True)))
+                self.setAssetState(True)
                 self.asset_e.setCurrentIndex(self.selected_asset_idx)
                 break
             idx = idx + 1
@@ -2179,7 +2183,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             self.selected_asset_guid = asset_guid
             self.selected_asset_address = None;
             self.populate_asset_picklist(amount)
-            self.amount_e.setAmount(float(self.format_amount(amount, whitespaces=True)))
+            self.amount_e.setAmount(amount)
             self.amount_e.textEdited.emit("")           
         elif amount:
             self.amount_e.setAmount(amount)
@@ -2262,13 +2266,9 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
 
             if current_symbol_index is not -1:
                 self.asset_e.setCurrentIndex(current_symbol_index)
-                self.amount_e = TokenAmountEdit(self.base_asset_unit(), self.selected_asset_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
-                self.amount_e.setAmount(float(self.format_amount(self.selected_asset_balance,
-                                                                       whitespaces=True)))
+                self.setAssetState(True)
             else:
-                self.amount_e = BTCAmountEdit(self.get_decimal_point)
-                self.send_grid.addWidget(self.amount_e, 4, 1)
+                self.setAssetState(False)
 
         else:
             self.selected_asset_symbol = None
@@ -2277,8 +2277,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             self.selected_asset_balance = 0
             self.selected_asset_decimal_point = self.decimal_point
             self.selected_asset_idx = -1
-            self.amount_e = BTCAmountEdit(self.get_decimal_point)
-            self.send_grid.addWidget(self.amount_e, 4, 1)
+            self.setAssetState(False)
 
     def create_list_tab(self, l, toolbar=None):
         w = QWidget()
