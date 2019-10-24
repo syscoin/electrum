@@ -168,6 +168,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         self.selected_asset_guid = None
         self.selected_asset_balance = None
         self.selected_asset_idx = None
+        self.updating_asset_list = False
 
         self.tx_notification_queue = queue.Queue()
         self.tx_notification_last_time = 0
@@ -284,9 +285,15 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         if asset is True:
             self.amount_e.setAssetMode(self.base_asset_unit(), self.get_asset_decimal_point)
             self.amount_e.setAmount(self.selected_asset_balance)
-        else:                                              
+        else:
+            self.selected_asset_symbol = None
+            self.selected_asset_guid = None
+            self.selected_asset_address = None
+            self.selected_asset_balance = 0
+            self.selected_asset_decimal_point = self.decimal_point
+            self.selected_asset_idx = -1
             self.amount_e.setSyscoinMode(self.get_decimal_point)   
-            self.amount_e.setAmount(0)       
+            self.amount_e.setAmount(0)      
 
     def on_assets_updated(self, assets, notify_flag=True):
         self.populate_asset_picklist()
@@ -1242,6 +1249,8 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         self.selected_asset_idx = 0
        
         def toggle_asset_change(state):
+            if self.asset_e.count() <= 0 or self.updating_asset_list is True:
+                return;
             asset_list = self.wallet.get_assets()
             self.selected_asset_idx = state
             index = state - 1
@@ -1260,8 +1269,9 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.selected_asset_balance = asset_list[index]['balance']
                 self.selected_asset_decimal_point = asset_list[index]['precision']
                 self.setAssetState(True)
-            else:
+            elif state == 0:
                 self.setAssetState(False)
+
         self.asset_e = QComboBox(self)
         self.asset_e.currentIndexChanged.connect(toggle_asset_change)
         self.amount_e = BTCAmountEdit(self.get_decimal_point)
@@ -1513,7 +1523,10 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         if run_hook('abort_send', self):
             return
         self.max_button.setChecked(True)
-        self.do_update_fee()
+        if self.selected_asset_balance is not None and self.selected_asset_balance > 0:
+            self.amount_e.setAmount(self.selected_asset_balance)
+        else:
+            self.do_update_fee()
 
     def update_fee(self):
         self.require_fee_update = True
@@ -1638,6 +1651,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         self.redraw_asset_selection_combo(guid, address)
 
     def redraw_asset_selection_combo(self, guid, address):
+        self.updating_asset_list = True
         self.asset_e.clear()
         idx = 1
         self.asset_e.addItem("Syscoin")
@@ -1656,6 +1670,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.asset_e.setCurrentIndex(self.selected_asset_idx)
                 break
             idx = idx + 1
+        self.updating_asset_list = False
 
     def set_pay_from(self, coins):
         self.pay_from = list(coins)
@@ -2226,6 +2241,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         self.update_fee()
         
     def populate_asset_picklist(self, amount = None):
+        self.updating_asset_list = True
         asset_list = self.wallet.get_assets()
 
         # save current asset if one is selected
@@ -2249,9 +2265,9 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 for idx in range(len(asset_list)):
                     if asset_list[idx]['asset_guid'] == current_symbol_guid \
                        and current_symbol_address is None or asset_list[idx]['address'] == current_symbol_address:
-                        current_symbol_index_backup = idx
+                        current_symbol_index_backup = idx + 1
                         if amount is None or asset_list[idx]['balance'] >= amount:
-                            current_symbol_index = idx
+                            current_symbol_index = idx + 1
                             break
                 if current_symbol_index is -1 and current_symbol_index_backup is not -1:
                     current_symbol_index = current_symbol_index_backup
@@ -2271,13 +2287,9 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 self.setAssetState(False)
 
         else:
-            self.selected_asset_symbol = None
-            self.selected_asset_guid = None
-            self.selected_asset_address = None
-            self.selected_asset_balance = 0
-            self.selected_asset_decimal_point = self.decimal_point
-            self.selected_asset_idx = -1
             self.setAssetState(False)
+
+        self.updating_asset_list = False
 
     def create_list_tab(self, l, toolbar=None):
         w = QWidget()
