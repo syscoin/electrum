@@ -2439,13 +2439,27 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         outputs_str = '\n'.join(map(lambda x: self.format_amount(x[2])+ self.base_unit() + ' @ ' + x[1], pr.get_outputs()))
         grid.addWidget(QLabel(outputs_str), 1, 1)
         expires = pr.get_expiration_date()
-        grid.addWidget(QLabel(_("Memo") + ':'), 2, 0)
-        grid.addWidget(QLabel(pr.get_memo()), 2, 1)
-        grid.addWidget(QLabel(_("Signature") + ':'), 3, 0)
-        grid.addWidget(QLabel(pr.get_verify_status()), 3, 1)
+
+        grid.addWidget(QLabel(_("Asset") + ':'), 2, 0)
+        asset_list = self.wallet.get_assets()
+        asset_symbol = "UNKNOWN"
+        asset_guid = pr.get_asset_guid()
+        if asset_guid is None:
+            asset_symbol = "SYS"
+        else:
+            for asset in asset_list:
+                if asset['asset_guid'] == asset_guid:
+                    asset_symbol = asset['symbol']
+                    break
+        grid.addWidget(QLabel(asset_symbol), 2, 1)
+
+        grid.addWidget(QLabel(_("Memo") + ':'), 3, 0)
+        grid.addWidget(QLabel(pr.get_memo()), 3, 1)
+        grid.addWidget(QLabel(_("Signature") + ':'), 4, 0)
+        grid.addWidget(QLabel(pr.get_verify_status()), 4, 1)
         if expires:
-            grid.addWidget(QLabel(_("Expires") + ':'), 4, 0)
-            grid.addWidget(QLabel(format_time(expires)), 4, 1)
+            grid.addWidget(QLabel(_("Expires") + ':'), 5, 0)
+            grid.addWidget(QLabel(format_time(expires)), 5, 1)
         vbox.addLayout(grid)
         def do_export():
             name = str(key) + '.bip70'

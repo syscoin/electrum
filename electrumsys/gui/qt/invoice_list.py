@@ -52,12 +52,14 @@ class InvoiceList(MyTreeView):
 
     class Columns(IntEnum):
         DATE = 0
-        DESCRIPTION = 1
-        AMOUNT = 2
-        STATUS = 3
+        ASSET = 1
+        DESCRIPTION = 2
+        AMOUNT = 3
+        STATUS = 4
 
     headers = {
         Columns.DATE: _('Date'),
+        Columns.ASSET: _('Asset'),
         Columns.DESCRIPTION: _('Description'),
         Columns.AMOUNT: _('Amount'),
         Columns.STATUS: _('Status'),
@@ -120,9 +122,16 @@ class InvoiceList(MyTreeView):
             message = item['message']
             amount = item['amount']
             timestamp = item.get('time', 0)
+            asset_guid = item.get('asset_guid', None)
+            asset_list = self.parent.wallet.get_assets()
+            asset_symbol = "SYS"
+            for asset in asset_list:
+                if asset['asset_guid'] == asset_guid:
+                    asset_symbol = asset['symbol']
+                    break
             date_str = format_time(timestamp) if timestamp else _('Unknown')
             amount_str = self.parent.format_amount(amount, whitespaces=True)
-            labels = [date_str, message, amount_str, status_str]
+            labels = [date_str, asset_symbol, message, amount_str, status_str]
             items = [QStandardItem(e) for e in labels]
             self.set_editability(items)
             items[self.Columns.DATE].setIcon(read_QIcon(icon_name))

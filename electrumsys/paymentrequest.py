@@ -260,7 +260,7 @@ class PaymentRequest:
         return self.requestor if self.requestor else self.get_address()
     
     def get_asset_guid(self):
-        return self.asset_guid
+        return self.details.asset_guid
 
     def get_verify_status(self):
         return self.error if self.requestor else "No Signature"
