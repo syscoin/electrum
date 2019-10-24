@@ -598,7 +598,7 @@ class Abstract_Wallet(AddressSynchronizer):
         if key not in self.invoices:
             return
         invoice = self.invoices[key]
-        assert invoice.get('type') == PR_TYPE_ONCHAIN
+        assert invoice.get('type') == PR_TYPE_ONCHAIN or invoice.get('type') == PR_TYPE_ONCHAIN_ASSET
         invoice['txid'] = txid
         self.storage.put('invoices', self.invoices)
 

@@ -86,7 +86,7 @@ class InvoiceList(MyTreeView):
         status_item = model.item(row, self.Columns.STATUS)
         status, status_str = get_request_status(req)
         log = None;
-        if self.parent.wallet.has_lightning():
+        if self.parent.wallet.has_lightning() and self.parent.wallet.lnworker is not None:
             log = self.parent.wallet.lnworker.logs.get(key)
         if log and status == PR_INFLIGHT:
             status_str += '... (%d)'%len(log)
@@ -96,7 +96,7 @@ class InvoiceList(MyTreeView):
     def update(self):
         _list = self.parent.wallet.get_invoices()
         # filter out paid invoices unless we have the log
-        _list = [x for x in _list if x and x.get('status') != PR_PAID or x.get('rhash') in self.parent.wallet.lnworker.logs]
+        _list = [x for x in _list if x and x.get('status') != PR_PAID or self.parent.wallet.lnworker is not None and x.get('rhash') in self.parent.wallet.lnworker.logs]
         self.model().clear()
         self.update_headers(self.__class__.headers)
         for idx, item in enumerate(_list):
@@ -162,7 +162,7 @@ class InvoiceList(MyTreeView):
         if invoice['status'] == PR_UNPAID:
             menu.addAction(_("Pay"), lambda: self.parent.do_pay_invoice(invoice))
         log = None;
-        if self.parent.wallet.has_lightning():
+        if self.parent.wallet.has_lightning() and self.parent.wallet.lnworker is not None:
             log = self.parent.wallet.lnworker.logs.get(key)
         if log:
             menu.addAction(_("View log"), lambda: self.show_log(key, log))

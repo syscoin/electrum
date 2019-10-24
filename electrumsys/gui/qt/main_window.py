@@ -827,8 +827,12 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
     def format_amount(self, x, is_diff=False, whitespaces=False):
         return format_satoshis(x, self.num_zeros, self.decimal_point, is_diff=is_diff, whitespaces=whitespaces)
 
-    def format_amount_and_units(self, amount):
-        text = self.format_amount(amount) + ' '+ self.base_unit()
+    def format_amount_and_units(self, amount, asset_symbol=None, asset_precision = None):
+        text = self.format_amount(amount) + ' '
+        if asset_symbol is not None and asset_precision is not None:
+            text += self.base_asset_unit(asset_symbol, asset_precision)
+        else:
+            text += self.base_unit()
         x = self.fx.format_amount_and_units(amount) if self.fx else None
         if text and x:
             text += ' (%s)'%x
@@ -847,8 +851,11 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
     def base_unit(self):
         return decimal_point_to_base_unit_name(self.decimal_point)
 
-    def base_asset_unit(self):
-        return decimal_point_to_base_asset_unit_name(self.selected_asset_symbol, self.selected_asset_decimal_point)
+    def base_asset_unit(self, asset_symbol = None, asset_precision = None):
+        if asset_symbol is not None and asset_precision is not None:
+            return decimal_point_to_base_asset_unit_name(asset_symbol, asset_precision)
+        else:
+            return decimal_point_to_base_asset_unit_name(self.selected_asset_symbol, self.selected_asset_decimal_point)
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
 
@@ -1910,8 +1917,14 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             self.logger.exception('')
             self.show_message(str(e))
             return
+        if self.max_button.isChecked():
+            amount = tx.output_value()
+        else:
+            if '!' in (x.value for x in outputs):
+                amount = '!'
+            else:
+                amount = sum(x.value for x in outputs)
 
-        amount = tx.output_value() if self.max_button.isChecked() else sum(map(lambda x: x.value, outputs))
         fee = tx.get_fee()
 
         use_rbf = bool(self.config.get('use_rbf', True))
@@ -1934,10 +1947,25 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             return
 
         # confirmation dialog
-        msg = [
-            _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
-            _("Mining fee") + ": " + self.format_amount_and_units(fee),
-        ]
+        msg = None
+        if asset_guid is not None:
+            asset_list = self.wallet.get_assets()
+            for asset in asset_list:
+                if asset['asset_guid'] == asset_guid:
+                    if amount == '!':
+                        amount = asset['balance']
+                    msg = [
+                        _("Amount to be sent") + ": " + self.format_amount_and_units(amount, asset['symbol'], asset['precision']),
+                        _("Mining fee") + ": " + self.format_amount_and_units(fee),
+                    ]
+                    break;
+        if msg is None: 
+            if amount == '!':
+                amount = tx.output_value()
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount),
+                _("Mining fee") + ": " + self.format_amount_and_units(fee),
+            ]        
 
         x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
         if x_fee:

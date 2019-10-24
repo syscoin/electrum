@@ -378,10 +378,22 @@ class SendScreen(CScreen):
         if rbf:
             tx.set_rbf(True)
         fee = tx.get_fee()
-        msg = [
-            _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount),
-            _("Mining fee") + ": " + self.app.format_amount_and_units(fee),
-        ]
+        
+        msg = None
+        if asset_guid is not None:
+            asset_list = self.wallet.get_assets()
+            for asset in asset_list:
+                if asset['asset_guid'] == asset_guid:
+                    msg = [
+                        _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount, asset['symbol'], asset['precision']),
+                        _("Mining fee") + ": " + self.app.format_amount_and_units(fee),
+                    ]
+                    break;
+        if msg is None:  
+            msg = [
+                _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount),
+                _("Mining fee") + ": " + self.app.format_amount_and_units(fee),
+            ]
         x_fee = run_hook('get_tx_extra_fee', self.app.wallet, tx)
         if x_fee:
             x_fee_address, x_fee_amount = x_fee
