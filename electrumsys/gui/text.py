@@ -68,7 +68,7 @@ class ElectrumSysGui:
         if self.network:
             self.network.register_callback(self.update, ['wallet_updated', 'network_updated'])
 
-        self.tab_names = [_("History"), _("Send"), _("Receive"), _("Addresses"), _("Contacts"), _("Banner"), _("Assets"), _("Send Assets")]
+        self.tab_names = [_("History"), _("Send"), _("Receive"), _("Addresses"), _("Contacts"), _("Banner"), _("Assets")]
         self.num_tabs = len(self.tab_names)
 
 

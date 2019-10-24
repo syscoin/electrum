@@ -149,6 +149,7 @@ class PaymentRequest:
             self.outputs.append(TxOutput(type_, addr, o.amount))
         self.memo = self.details.memo
         self.payment_url = self.details.payment_url
+        self.asset_guid = self.details.asset_guid
 
     def verify(self, contacts):
         if self.error:
@@ -257,6 +258,9 @@ class PaymentRequest:
 
     def get_requestor(self):
         return self.requestor if self.requestor else self.get_address()
+    
+    def get_asset_guid(self):
+        return self.asset_guid
 
     def get_verify_status(self):
         return self.error if self.requestor else "No Signature"
@@ -316,6 +320,9 @@ class PaymentRequest:
 def make_unsigned_request(req):
     from .transaction import Transaction
     addr = req['address']
+    asset_guid = None
+    if 'asset_guid' in req:
+        asset_guid = req['asset_guid']
     time = req.get('time', 0)
     exp = req.get('exp', 0)
     if time and type(time) != int:
@@ -334,6 +341,7 @@ def make_unsigned_request(req):
     pd.time = time
     pd.expires = time + exp if exp else 0
     pd.memo = memo
+    pd.asset_guid = asset_guid
     pr = pb2.PaymentRequest()
     pr.serialized_payment_details = pd.SerializeToString()
     pr.signature = util.to_bytes('')

@@ -28,7 +28,7 @@ with open(cert_file, 'r') as f:
 
 script = Transaction.pay_script('address', address).decode('hex')
 
-pr_string = paymentrequest.make_payment_request(amount, script, memo, rsakey)
+pr_string = paymentrequest.make_payment_request(None, amount, script, memo, rsakey)
 
 with open(out_file,'wb') as f:
     f.write(pr_string)

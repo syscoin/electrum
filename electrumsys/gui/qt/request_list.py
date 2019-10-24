@@ -31,7 +31,7 @@ from PyQt5.QtCore import Qt, QItemSelectionModel
 
 from electrumsys.i18n import _
 from electrumsys.util import format_time, age, get_request_status
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_LN
+from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
 from electrumsys.util import PR_UNPAID, PR_EXPIRED, PR_PAID, PR_UNKNOWN, PR_INFLIGHT, pr_tooltips
 from electrumsys.lnutil import SENT, RECEIVED
 from electrumsys.plugin import run_hook
@@ -135,6 +135,10 @@ class RequestList(MyTreeView):
                 key = req['address']
                 icon = read_QIcon("syscoin.png")
                 tooltip = 'onchain request'
+            elif request_type == PR_TYPE_ONCHAIN_ASSET:
+                key = req['address']
+                icon = read_QIcon("syscoin.png")
+                tooltip = 'onchain asset send request'                
             items = [QStandardItem(e) for e in labels]
             self.set_editability(items)
             items[self.Columns.DATE].setData(request_type, ROLE_REQUEST_TYPE)

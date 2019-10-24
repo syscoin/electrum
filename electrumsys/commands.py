@@ -780,7 +780,7 @@ class Commands:
         return wallet.get_unused_address()
 
     @command('w')
-    async def add_request(self, amount, memo='', expiration=3600, force=False, wallet: Abstract_Wallet = None):
+    async def add_request(self, amount, asset_guid=None, memo='', expiration=3600, force=False, wallet: Abstract_Wallet = None):
         """Create a payment request, using the first unused address of the wallet.
         The address will be considered as used after this operation.
         If no payment is received, the address will be considered as unused if the payment request is deleted from the wallet."""
@@ -792,7 +792,7 @@ class Commands:
                 return False
         amount = satoshis(amount)
         expiration = int(expiration) if expiration else None
-        req = wallet.make_payment_request(addr, amount, memo, expiration)
+        req = wallet.make_payment_request(asset_guid, addr, amount, memo, expiration)
         wallet.add_payment_request(req)
         out = wallet.get_request(addr)
         return self._format_request(out)
@@ -1039,6 +1039,7 @@ command_options = {
     'fee_level':   (None, "Float between 0.0 and 1.0, representing fee slider position"),
     'from_height': (None, "Only show transactions that confirmed after given block height"),
     'to_height':   (None, "Only show transactions that confirmed before given block height"),
+    'asset_guid':  (None,  'Asset GUID'),
 }
 
 

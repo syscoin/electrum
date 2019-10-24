@@ -24,7 +24,7 @@ from kivy.utils import platform
 
 from electrumsys.bitcoin import TYPE_ADDRESS
 from electrumsys.util import profiler, parse_URI, format_time, InvalidPassword, NotEnoughFunds, Fiat
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_LN
+from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
 from electrumsys import bitcoin, constants
 from electrumsys.transaction import TxOutput, Transaction, tx_from_str
 from electrumsys.util import send_exception_to_crash_reporter, parse_URI, InvalidBitcoinURI
@@ -200,6 +200,7 @@ class SendScreen(CScreen):
         amount = uri.get('amount')
         self.screen.address = uri.get('address', '')
         self.screen.message = uri.get('message', '')
+        self.screen.asset_guid = uri.get('asset_guid', None)
         self.screen.amount = self.app.format_amount_and_units(amount) if amount else ''
         self.payment_request = None
         self.screen.is_lightning = False
@@ -234,13 +235,14 @@ class SendScreen(CScreen):
         if invoice_type == PR_TYPE_LN:
             key = item['rhash']
             status = get_request_status(item) # convert to str
-        elif invoice_type == PR_TYPE_ONCHAIN:
+        elif invoice_type == PR_TYPE_ONCHAIN or invoice_type == PR_TYPE_ONCHAIN_ASSET:
             key = item['id']
             status = get_request_status(item) # convert to str
         else:
             raise Exception('unknown invoice type')
         return {
             'is_lightning': invoice_type == PR_TYPE_LN,
+            'is_asset': invoice_type == PR_TYPE_ONCHAIN_ASSET,
             'is_bip70': 'bip70' in item,
             'screen': self,
             'status': status,
@@ -251,6 +253,7 @@ class SendScreen(CScreen):
 
     def do_clear(self):
         self.screen.amount = ''
+        self.screen.asset_guid = None
         self.screen.message = ''
         self.screen.address = ''
         self.payment_request = None
@@ -262,6 +265,7 @@ class SendScreen(CScreen):
         amount = pr.get_amount()
         self.screen.amount = self.app.format_amount_and_units(amount) if amount else ''
         self.screen.message = pr.get_memo()
+        self.screen.asset_guid = pr.get_asset_guid()
         self.screen.locked = True
         self.payment_request = pr
 
@@ -303,6 +307,7 @@ class SendScreen(CScreen):
             self.app.show_error(_('Invalid amount') + ':\n' + self.screen.amount)
             return
         message = self.screen.message
+        asset_guid = self.screen.asset_guid
         if self.screen.is_lightning:
             return self.app.wallet.lnworker.parse_bech32_invoice(address)
         else:
@@ -310,7 +315,7 @@ class SendScreen(CScreen):
                 self.app.show_error(_('Invalid Syscoin Address') + ':\n' + address)
                 return
             outputs = [TxOutput(TYPE_ADDRESS, address, amount)]
-            return self.app.wallet.create_invoice(outputs, message, self.payment_request, self.parsed_URI)
+            return self.app.wallet.create_invoice(asset_guid, outputs, message, self.payment_request, self.parsed_URI)
 
     def do_save(self):
         invoice = self.read_invoice()
@@ -333,16 +338,19 @@ class SendScreen(CScreen):
         if invoice['type'] == PR_TYPE_LN:
             self._do_send_lightning(invoice['invoice'], invoice['amount'])
             return
-        elif invoice['type'] == PR_TYPE_ONCHAIN:
+        elif invoice['type'] == PR_TYPE_ONCHAIN or invoice['type'] == PR_TYPE_ONCHAIN_ASSET:
             message = invoice['message']
             outputs = invoice['outputs']  # type: List[TxOutput]
             amount = sum(map(lambda x: x.value, outputs))
-            do_pay = lambda rbf: self._do_send_onchain(amount, message, outputs, rbf)
-            if self.app.electrumsys_config.get('use_rbf'):
+            asset_guid = None
+            if 'asset_guid' in invoice:
+                asset_guid = invoice['asset_guid']
+            do_pay = lambda rbf: self._do_send_onchain(amount, message, outputs, rbf, asset_guid=asset_guid)
+            if self.app.electrumsys_config.get('use_rbf') and invoice['type'] == PR_TYPE_ONCHAIN:
                 d = Question(_('Should this transaction be replaceable?'), do_pay)
                 d.open()
             else:
-                do_pay(False)
+                do_pay(False)               
         else:
             raise Exception('unknown invoice type')
 
@@ -350,11 +358,14 @@ class SendScreen(CScreen):
         attempts = 10
         threading.Thread(target=self.app.wallet.lnworker.pay, args=(invoice, amount, attempts)).start()
 
-    def _do_send_onchain(self, amount, message, outputs, rbf):
+    def _do_send_onchain(self, amount, message, outputs, rbf, asset_guid=None):
         # make unsigned transaction
         coins = self.app.wallet.get_spendable_coins(None)
         try:
-            tx = self.app.wallet.make_unsigned_transaction(coins, outputs, None)
+            tx = self.app.wallet.make_unsigned_transaction(coins, outputs, None, None, False, asset_guid)
+            if tx is None:
+                self.app.show_error(_("Error creating asset transaction"))
+                return
         except NotEnoughFunds:
             self.app.show_error(_("Not enough funds"))
             return
@@ -412,6 +423,7 @@ class ReceiveScreen(CScreen):
 
     def clear(self):
         self.screen.address = ''
+        self.screen.asset_guid = None
         self.screen.amount = ''
         self.screen.message = ''
         self.screen.lnaddr = ''
@@ -436,7 +448,7 @@ class ReceiveScreen(CScreen):
             a, u = self.screen.amount.split()
             assert u == self.app.base_unit
             amount = Decimal(a) * pow(10, self.app.decimal_point())
-        return create_bip21_uri(self.screen.address, amount, self.screen.message)
+        return create_bip21_uri(self.screen.asset_guid, self.screen.address, amount, self.screen.message)
 
     def do_copy(self):
         uri = self.get_URI()
@@ -457,12 +469,13 @@ class ReceiveScreen(CScreen):
                 self.app.show_info(_('No address available. Please remove some of your pending requests.'))
                 return
             self.screen.address = addr
-            req = self.app.wallet.make_payment_request(addr, amount, message, self.expiry())
+            req = self.app.wallet.make_payment_request(self.screen.asset_guid, addr, amount, message, self.expiry())
             self.app.wallet.add_payment_request(req)
             key = addr
         self.clear()
         self.update()
         self.app.show_request(lightning, key)
+
 
     def get_card(self, req):
         is_lightning = req.get('type') == PR_TYPE_LN

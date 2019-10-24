@@ -529,12 +529,13 @@ class Network(Logger):
                 'name': str(get_value_or_blank(as_addr, 'symbol')),
                 'asset_guid': str(get_value_or_blank(as_addr, 'asset_guid')),
                 'balance': int(float(as_addr['balance']) * 100000000),
-                'address': get_value_or_blank(as_addr, 'address')
+                'address': get_value_or_blank(as_addr, 'address'),
+                'precision': int(get_value_or_blank(as_addr, 'precision')),
             }]
 
         return assets_result_
 
-    async def create_assetallocation_send(self, from_address, to_address, asset_guid, amount, memo) -> List[dict]:
+    async def create_assetallocation_send(self, from_address, to_address, asset_guid, amount) -> List[dict]:
         if not self.is_connected():
             return
         session = self.interface.session

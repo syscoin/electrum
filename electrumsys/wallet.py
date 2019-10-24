@@ -539,7 +539,7 @@ class Abstract_Wallet(AddressSynchronizer):
                 'txpos_in_block': hist_item.tx_mined_status.txpos,
             }
 
-    def create_invoice(self, outputs: List[TxOutput], message, pr, URI):
+    def create_invoice(self, asset_guid, outputs: List[TxOutput], message, pr, URI):
         if '!' in (x.value for x in outputs):
             amount = '!'
         else:
@@ -550,12 +550,16 @@ class Abstract_Wallet(AddressSynchronizer):
             'outputs': outputs,
             'amount': amount,
         }
+        if asset_guid:
+            invoice['type'] = PR_TYPE_ONCHAIN_ASSET
+            invoice['asset_guid'] = asset_guid
         if pr:
             invoice['bip70'] = pr.raw.hex()
             invoice['time'] = pr.get_time()
             invoice['exp'] = pr.get_expiration_date() - pr.get_time()
             invoice['requestor'] = pr.get_requestor()
             invoice['message'] = pr.get_memo()
+            invoice['asset_guid'] = pr.get_asset_guid()
         elif URI:
             timestamp = URI.get('time')
             if timestamp: invoice['time'] = timestamp
@@ -569,7 +573,7 @@ class Abstract_Wallet(AddressSynchronizer):
         invoice_type = invoice['type']
         if invoice_type == PR_TYPE_LN:
             key = invoice['rhash']
-        elif invoice_type == PR_TYPE_ONCHAIN:
+        elif invoice_type == PR_TYPE_ONCHAIN or invoice_type == PR_TYPE_ONCHAIN_ASSET:
             key = bh2u(sha256(repr(invoice))[0:16])
             invoice['id'] = key
             invoice['txid'] = None
@@ -598,7 +602,7 @@ class Abstract_Wallet(AddressSynchronizer):
             return
         item = copy.copy(self.invoices[key])
         request_type = item.get('type')
-        if request_type == PR_TYPE_ONCHAIN:
+        if request_type == PR_TYPE_ONCHAIN or request_type == PR_TYPE_ONCHAIN_ASSET:
             item['status'] = PR_PAID if item.get('txid') is not None else PR_UNPAID
         elif self.lnworker and request_type == PR_TYPE_LN:
             item['status'] = self.lnworker.get_payment_status(bfh(item['rhash']))
@@ -875,8 +879,46 @@ class Abstract_Wallet(AddressSynchronizer):
         max_change = self.max_change_outputs if self.multiple_change else 1
         return change_addrs[:max_change]
 
+    def make_unsigned_assetsend_transaction(self, config, from_address, asset_guid, outputs):
+        tx = None
+        if outputs is None or len(outputs) is 0:
+            raise Exception("No outputs defined")
+        if len(outputs) > 1:
+            raise Exception("More than one output for asset send is not supported by electrum at this moment")
+        amount = outputs[0].value
+        to_address = outputs[0].address
+        from_address = None
+        # find an address that holds enough asset to send from
+        for x in range(len(self.asset_list)):
+            if self.asset_list[x]['asset_guid'] == asset_guid and self.asset_list[x]['balance'] >= amount:
+                from_address = self.asset_list[x]['address']
+                break
+        if from_address is None:
+            raise NotEnoughFunds()       
+        if self.network and self.network.asyncio_loop.is_running():
+            raw_tx = None
+            try:
+                self.logger.info("creating assetsend transaction: {} {} {} {}".format(
+                    from_address, to_address, asset_guid, amount))
+                raw_tx = self.network.run_from_another_thread(
+                    self.network.create_assetallocation_send(
+                        from_address,
+                        to_address,
+                        asset_guid,
+                        amount)
+                )
+                self.logger.info("assetsend tx created: {}".format(raw_tx))
+            except RequestTimedOut as e:
+                self.logger.info("error creating assetsend tx: {}".format(e))
+                raise e
+            run_hook('make_unsigned_assetsend_transaction', self, raw_tx)
+            tx = Transaction(raw_tx)
+            tx.deserialize(force_full_parse=True, wallet=self.wallet)  # need to parse inputs
+        return tx
+
     def make_unsigned_transaction(self, coins, outputs, fixed_fee=None,
-                                  change_addr=None, is_sweep=False):
+                                  change_addr=None, is_sweep=False, 
+                                  asset_guid=None):
         # check outputs
         i_max = None
         for i, o in enumerate(outputs):
@@ -887,98 +929,78 @@ class Abstract_Wallet(AddressSynchronizer):
                 if i_max is not None:
                     raise Exception("More than one output set to spend max")
                 i_max = i
+        if asset_guid is None:
+            if fixed_fee is None and self.config.fee_per_kb() is None:
+                raise NoDynamicFeeEstimates()
 
-        if fixed_fee is None and self.config.fee_per_kb() is None:
-            raise NoDynamicFeeEstimates()
+            for item in coins:
+                self.add_input_info(item)
 
-        for item in coins:
-            self.add_input_info(item)
-
-        # Fee estimator
-        if fixed_fee is None:
-            fee_estimator = self.config.estimate_fee
-        elif isinstance(fixed_fee, Number):
-            fee_estimator = lambda size: fixed_fee
-        elif callable(fixed_fee):
-            fee_estimator = fixed_fee
-        else:
-            raise Exception('Invalid argument fixed_fee: %s' % fixed_fee)
-
-        if i_max is None:
-            # Let the coin chooser select the coins to spend
-            coin_chooser = coinchooser.get_coin_chooser(self.config)
-            # If there is an unconfirmed RBF tx, merge with it
-            base_tx = self.get_unconfirmed_base_tx_for_batching()
-            if self.config.get('batch_rbf', False) and base_tx:
-                # make sure we don't try to spend change from the tx-to-be-replaced:
-                coins = [c for c in coins if c['prevout_hash'] != base_tx.txid()]
-                is_local = self.get_tx_height(base_tx.txid()).height == TX_HEIGHT_LOCAL
-                base_tx = Transaction(base_tx.serialize())
-                base_tx.deserialize(force_full_parse=True)
-                base_tx.remove_signatures()
-                base_tx.add_inputs_info(self)
-                base_tx_fee = base_tx.get_fee()
-                relayfeerate = Decimal(self.relayfee()) / 1000
-                original_fee_estimator = fee_estimator
-                def fee_estimator(size: Union[int, float, Decimal]) -> int:
-                    size = Decimal(size)
-                    lower_bound = base_tx_fee + round(size * relayfeerate)
-                    lower_bound = lower_bound if not is_local else 0
-                    return int(max(lower_bound, original_fee_estimator(size)))
-                txi = base_tx.inputs()
-                txo = list(filter(lambda o: not self.is_change(o.address), base_tx.outputs()))
-                old_change_addrs = [o.address for o in base_tx.outputs() if self.is_change(o.address)]
+            # Fee estimator
+            if fixed_fee is None:
+                fee_estimator = self.config.estimate_fee
+            elif isinstance(fixed_fee, Number):
+                fee_estimator = lambda size: fixed_fee
+            elif callable(fixed_fee):
+                fee_estimator = fixed_fee
             else:
-                txi = []
-                txo = []
-                old_change_addrs = []
-            # change address. if empty, coin_chooser will set it
-            change_addrs = self.get_change_addresses_for_new_transaction(change_addr or old_change_addrs)
-            tx = coin_chooser.make_tx(coins, txi, outputs[:] + txo, change_addrs,
-                                      fee_estimator, self.dust_threshold())
-        else:
-            # "spend max" branch
-            # note: This *will* spend inputs with negative effective value (if there are any).
-            #       Given as the user is spending "max", and so might be abandoning the wallet,
-            #       try to include all UTXOs, otherwise leftover might remain in the UTXO set
-            #       forever. see #5433
-            # note: Actually it might be the case that not all UTXOs from the wallet are
-            #       being spent if the user manually selected UTXOs.
-            sendable = sum(map(lambda x:x['value'], coins))
-            outputs[i_max] = outputs[i_max]._replace(value=0)
-            tx = Transaction.from_io(coins, outputs[:])
-            fee = fee_estimator(tx.estimated_size())
-            amount = sendable - tx.output_value() - fee
-            if amount < 0:
-                raise NotEnoughFunds()
-            outputs[i_max] = outputs[i_max]._replace(value=amount)
-            tx = Transaction.from_io(coins, outputs[:])
+                raise Exception('Invalid argument fixed_fee: %s' % fixed_fee)
 
+            if i_max is None:
+                # Let the coin chooser select the coins to spend
+                coin_chooser = coinchooser.get_coin_chooser(self.config)
+                # If there is an unconfirmed RBF tx, merge with it
+                base_tx = self.get_unconfirmed_base_tx_for_batching()
+                if self.config.get('batch_rbf', False) and base_tx:
+                    # make sure we don't try to spend change from the tx-to-be-replaced:
+                    coins = [c for c in coins if c['prevout_hash'] != base_tx.txid()]
+                    is_local = self.get_tx_height(base_tx.txid()).height == TX_HEIGHT_LOCAL
+                    base_tx = Transaction(base_tx.serialize())
+                    base_tx.deserialize(force_full_parse=True)
+                    base_tx.remove_signatures()
+                    base_tx.add_inputs_info(self)
+                    base_tx_fee = base_tx.get_fee()
+                    relayfeerate = Decimal(self.relayfee()) / 1000
+                    original_fee_estimator = fee_estimator
+                    def fee_estimator(size: Union[int, float, Decimal]) -> int:
+                        size = Decimal(size)
+                        lower_bound = base_tx_fee + round(size * relayfeerate)
+                        lower_bound = lower_bound if not is_local else 0
+                        return int(max(lower_bound, original_fee_estimator(size)))
+                    txi = base_tx.inputs()
+                    txo = list(filter(lambda o: not self.is_change(o.address), base_tx.outputs()))
+                    old_change_addrs = [o.address for o in base_tx.outputs() if self.is_change(o.address)]
+                else:
+                    txi = []
+                    txo = []
+                    old_change_addrs = []
+                # change address. if empty, coin_chooser will set it
+                change_addrs = self.get_change_addresses_for_new_transaction(change_addr or old_change_addrs)
+                tx = coin_chooser.make_tx(coins, txi, outputs[:] + txo, change_addrs,
+                                        fee_estimator, self.dust_threshold())
+            else:
+                # "spend max" branch
+                # note: This *will* spend inputs with negative effective value (if there are any).
+                #       Given as the user is spending "max", and so might be abandoning the wallet,
+                #       try to include all UTXOs, otherwise leftover might remain in the UTXO set
+                #       forever. see #5433
+                # note: Actually it might be the case that not all UTXOs from the wallet are
+                #       being spent if the user manually selected UTXOs.
+                sendable = sum(map(lambda x:x['value'], coins))
+                outputs[i_max] = outputs[i_max]._replace(value=0)
+                tx = Transaction.from_io(coins, outputs[:])
+                fee = fee_estimator(tx.estimated_size())
+                amount = sendable - tx.output_value() - fee
+                if amount < 0:
+                    raise NotEnoughFunds()
+                outputs[i_max] = outputs[i_max]._replace(value=amount)
+                tx = Transaction.from_io(coins, outputs[:])
+        else:
+            tx = self.make_unsigned_assetsend_transaction(from_address, asset_guid, outputs)
         # Timelock tx to current height.
         tx.locktime = get_locktime_for_new_transaction(self.network)
         run_hook('make_unsigned_transaction', self, tx)
         return tx
-
-    def make_unsigned_assetsend_transaction(self, config, from_address, to_address, asset_guid, amount, memo):
-        raw_tx = None
-        if self.network and self.network.asyncio_loop.is_running():
-            try:
-                self.logger.info("creating assetsend transaction: {} {} {} {}".format(
-                    from_address, to_address, asset_guid, amount))
-                raw_tx = self.network.run_from_another_thread(
-                    self.network.create_assetallocation_send(
-                        from_address,
-                        to_address,
-                        asset_guid,
-                        amount,
-                        memo)
-                )
-                self.logger.info("assetsend tx created: {}".format(raw_tx))
-            except RequestTimedOut as e:
-                self.logger.info("error creating assetsend tx: {}".format(e))
-                raise e
-            run_hook('make_unsigned_assetsend_transaction', self, raw_tx)
-        return raw_tx
 
     def mktx(self, outputs, password, fee=None, change_addr=None,
              domain=None, rbf=False, nonlocal_only=False, *, tx_version=None):
@@ -1425,6 +1447,10 @@ class Abstract_Wallet(AddressSynchronizer):
         req = self.receive_requests[addr]
         message = self.labels.get(addr, '')
         amount = req['amount']
+        asset_guid = None
+        if req.get('asset_guid'):
+            asset_guid = req['asset_guid']
+            message = req['memo']
         extra_query_params = {}
         if req.get('time'):
             extra_query_params['time'] = str(int(req.get('time')))
@@ -1435,7 +1461,7 @@ class Abstract_Wallet(AddressSynchronizer):
             sig = bitcoin.base_encode(sig, base=58)
             extra_query_params['name'] = req['name']
             extra_query_params['sig'] = sig
-        uri = create_bip21_uri(addr, amount, message, extra_query_params=extra_query_params)
+        uri = create_bip21_uri(asset_guid, addr, amount, message, extra_query_params=extra_query_params)
         return str(uri)
 
     def get_request_status(self, address):
@@ -1465,7 +1491,7 @@ class Abstract_Wallet(AddressSynchronizer):
             return
         req = copy.copy(req)
         _type = req.get('type')
-        if _type == PR_TYPE_ONCHAIN:
+        if _type == PR_TYPE_ONCHAIN or _type == PR_TYPE_ONCHAIN_ASSET:
             addr = req['address']
             req['URI'] = self.get_request_URI(addr)
             status, conf = self.get_request_status(addr)
@@ -1499,20 +1525,33 @@ class Abstract_Wallet(AddressSynchronizer):
                 status, conf = self.get_request_status(addr)
                 self.network.trigger_callback('payment_received', self, addr, status)
 
-    def make_payment_request(self, addr, amount, message, expiration):
+    def make_payment_request(self, asset_guid, addr, amount, message, expiration):
         from .bitcoin import TYPE_ADDRESS
         timestamp = int(time.time())
         _id = bh2u(sha256d(addr + "%d"%timestamp))[0:10]
-        return {
-            'type': PR_TYPE_ONCHAIN,
-            'time':timestamp,
-            'amount':amount,
-            'exp':expiration,
-            'address':addr,
-            'memo':message,
-            'id':_id,
-            'outputs': [(TYPE_ADDRESS, addr, amount)]
-        }
+        if asset_guid:
+            return {
+                'type': PR_TYPE_ONCHAIN_ASSET,
+                'asset_guid':asset_guid,
+                'time':timestamp,
+                'amount':amount,
+                'exp':expiration,
+                'address':toaddr,
+                'memo':message,
+                'id':_id,
+                'outputs': [(TYPE_ADDRESS, toaddr, amount)]
+            }
+        else:
+            return {
+                'type': PR_TYPE_ONCHAIN,
+                'time':timestamp,
+                'amount':amount,
+                'exp':expiration,
+                'address':addr,
+                'memo':message,
+                'id':_id,
+                'outputs': [(TYPE_ADDRESS, addr, amount)]
+            }           
 
     def sign_payment_request(self, key, alias, alias_addr, password):
         req = self.receive_requests.get(key)
@@ -1525,7 +1564,7 @@ class Abstract_Wallet(AddressSynchronizer):
         self.storage.put('payment_requests', self.receive_requests)
 
     def add_payment_request(self, req):
-        if req['type'] == PR_TYPE_ONCHAIN:
+        if req['type'] == PR_TYPE_ONCHAIN or req['type'] == PR_TYPE_ONCHAIN_ASSET:
             addr = req['address']
             if not bitcoin.is_address(addr):
                 raise Exception(_('Invalid Syscoin address.'))
