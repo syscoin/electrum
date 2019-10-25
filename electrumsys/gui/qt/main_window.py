@@ -298,13 +298,12 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         if self.fx.is_enabled() and self.fx.get_base_currency() is not amount_e.getTokenSymbol():
             self.fx.set_base_currency(amount_e.getTokenSymbol())
 
-    def on_assets_updated(self, assets, notify_flag=True):
+    def on_assets_updated(self, asset, notify_flag=True):
         self.populate_asset_picklist(self.asset_e, self.amount_e)
         self.populate_asset_picklist(self.receive_asset_e, self.receive_amount_e)
-        if notify_flag is True:
-            for asset in assets:
-                self.notify(_("Asset balance updated: New total for asset {} with guid {} is {}")
-                            .format(asset['symbol'], asset['asset_guid'], self.format_amount(asset['balance'])))
+        if notify_flag is True and asset is not None:
+            self.notify(_("Asset balance updated: New total for asset {} with guid {} is {}")
+                        .format(asset['symbol'], asset['asset_guid'], self.format_amount(asset['balance'])))
 
     def setup_exception_hook(self):
         Exception_Hook(self)
@@ -1694,6 +1693,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         asset_e.clear()
         idx = 1
         asset_e.addItem("Syscoin")
+        foundAsset = False
         for t in self.wallet.get_assets():
             asset_e.addItem("{} ({}:{}) {}".format( t['address'], t['asset_guid'],
                                                          t['symbol'], self.format_amount(t['balance'],
@@ -1705,9 +1705,10 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                 asset_e.selected_asset_address = t['address']
                 asset_e.selected_asset_balance = t['balance']
                 asset_e.selected_asset_decimal_point = t['precision']
-                self.setAssetState(True, asset_e, amount_e)
-                break
+                foundAsset = True
             idx = idx + 1
+        if foundAsset is True:
+            self.setAssetState(True, asset_e, amount_e)
         self.updating_asset_list = False
 
     def set_pay_from(self, coins):
@@ -1962,11 +1963,11 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
 
         fee = tx.get_fee()
 
-        use_rbf = bool(self.config.get('use_rbf', True))
+        use_rbf = bool(self.config.get('use_rbf', True)) and asset_guid is None
         if use_rbf:
             tx.set_rbf(True)
 
-        if fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
+        if asset_guid is None and fee < self.wallet.relayfee() * tx.estimated_size() / 1000:
             self.show_error('\n'.join([
                 _("This transaction requires a higher fee, or it will not be propagated by your current server"),
                 _("Try to raise your transaction fee, or use a server with a lower relay fee.")
