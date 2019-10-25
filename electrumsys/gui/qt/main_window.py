@@ -2300,7 +2300,6 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
     def populate_asset_picklist(self, asset_e, amount_e, amount: int = None):
         self.updating_asset_list = True
         asset_list = self.wallet.get_assets()
-
         # save current asset if one is selected
         current_symbol = None if asset_e.selected_asset_idx == -1 else asset_e.selected_asset_symbol
         current_symbol_address = None if asset_e.selected_asset_idx == -1 else asset_e.selected_asset_address
@@ -2320,7 +2319,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
                         asset_e.selected_asset_idx = i*j + j
                         foundAmountIdx = True
     
-            if foundAmountIdx is False:
+            if amount is not None and foundAmountIdx is False:
                 self.setAssetState(False, asset_e, amount_e)
             else:
                 self.setAssetState(True, asset_e, amount_e)
