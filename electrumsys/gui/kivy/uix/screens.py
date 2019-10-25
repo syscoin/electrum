@@ -508,6 +508,8 @@ class ReceiveScreen(CScreen):
         ci['memo'] = description
         ci['status'] = status_str
         ci['is_expired'] = status == PR_EXPIRED
+        ci['is_asset']: req.get('type') == PR_TYPE_ONCHAIN_ASSET
+        ci['asset_guid']: req.get('asset_guid')
         return ci
 
     def update(self):

@@ -870,7 +870,7 @@ def create_bip21_uri(asset_guid, addr, amount_sat: Optional[int], message: Optio
     if message:
         query.append('message=%s'%urllib.parse.quote(message))
     if asset_guid:
-        query.append('asset_guid=%s'%urllib.parse.quote(message))    
+        query.append('asset_guid=%s'%urllib.parse.quote(asset_guid))    
     for k, v in extra_query_params.items():
         if not isinstance(k, str) or k != urllib.parse.quote(k):
             raise Exception(f"illegal key for URI: {repr(k)}")

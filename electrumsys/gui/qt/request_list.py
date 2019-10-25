@@ -50,12 +50,14 @@ class RequestList(MyTreeView):
 
     class Columns(IntEnum):
         DATE = 0
-        DESCRIPTION = 1
-        AMOUNT = 2
-        STATUS = 3
+        ASSET = 1
+        DESCRIPTION = 2
+        AMOUNT = 3
+        STATUS = 4
 
     headers = {
         Columns.DATE: _('Date'),
+        Columns.ASSET: _('Asset'),
         Columns.DESCRIPTION: _('Description'),
         Columns.AMOUNT: _('Amount'),
         Columns.STATUS: _('Status'),
@@ -121,10 +123,17 @@ class RequestList(MyTreeView):
             timestamp = req.get('time', 0)
             expiration = req.get('exp', None)
             amount = req.get('amount')
+            asset_guid = item.get('asset_guid', None)
+            asset_list = self.parent.wallet.get_assets()
+            asset_symbol = "SYS"
+            for asset in asset_list:
+                if asset['asset_guid'] == asset_guid:
+                    asset_symbol = asset['symbol']
+                    break
             message = req.get('message') or req.get('memo')
             date = format_time(timestamp)
             amount_str = self.parent.format_amount(amount) if amount else ""
-            labels = [date, message, amount_str, status_str]
+            labels = [date, asset_symbol, message, amount_str, status_str]
             if request_type == PR_TYPE_LN:
                 key = req['rhash']
                 icon = read_QIcon("lightning.png")
@@ -135,8 +144,8 @@ class RequestList(MyTreeView):
                 tooltip = 'onchain request'
             elif request_type == PR_TYPE_ONCHAIN_ASSET:
                 key = req['address']
-                icon = read_QIcon("syscoin.png")
-                tooltip = 'onchain asset send request'                
+                icon = read_QIcon("tab_assets.png")
+                tooltip = 'onchain asset request'                
             items = [QStandardItem(e) for e in labels]
             self.set_editability(items)
             items[self.Columns.DATE].setData(request_type, ROLE_REQUEST_TYPE)

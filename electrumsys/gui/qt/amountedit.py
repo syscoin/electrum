@@ -33,13 +33,10 @@ class AmountEdit(MyLineEdit):
         self.is_shortcut = False
         self.help_palette = QPalette()
         self.extra_precision = 0
-
-    def decimal_point(self):
-        return 8
-
+        self.decimal_point = 8
 
     def max_precision(self):
-        return self.decimal_point() + self.extra_precision
+        return self.decimal_point + self.extra_precision
 
     def numbify(self):
         text = self.text().strip()
@@ -90,9 +87,9 @@ class BTCAmountEdit(AmountEdit):
 
     def _base_unit(self):
         if self.token_symbol is "syscoin":
-            return decimal_point_to_base_unit_name(self.decimal_point())
+            return decimal_point_to_base_unit_name(self.decimal_point)
         else:
-            return decimal_point_to_base_asset_unit_name(self.token_symbol, self.decimal_point())
+            return decimal_point_to_base_asset_unit_name(self.token_symbol, self.decimal_point)
 
     def setAssetMode(self, token, decimal_point):
         self.token_symbol = token
@@ -114,17 +111,17 @@ class BTCAmountEdit(AmountEdit):
         power = pow(10, self.max_precision())
         max_prec_amount = int(power * x)
         # if the max precision is simply what unit conversion allows, just return
-        if self.max_precision() == self.decimal_point():
+        if self.max_precision() == self.decimal_point:
             return max_prec_amount
         # otherwise, scale it back to the expected unit
-        amount = Decimal(max_prec_amount) / pow(10, self.max_precision()-self.decimal_point())
+        amount = Decimal(max_prec_amount) / pow(10, self.max_precision()-self.decimal_point)
         return Decimal(amount) if not self.is_int else int(amount)
 
     def setAmount(self, amount):
         if amount is None:
             self.setText(" ") # Space forces repaint in case units changed
         else:
-            self.setText(format_satoshis_plain(amount, self.decimal_point()))
+            self.setText(format_satoshis_plain(amount, self.decimal_point))
 
 class FeerateEdit(BTCAmountEdit):
 

@@ -1552,10 +1552,10 @@ class Abstract_Wallet(AddressSynchronizer):
                 'time':timestamp,
                 'amount':amount,
                 'exp':expiration,
-                'address':toaddr,
+                'address':addr,
                 'memo':message,
                 'id':_id,
-                'outputs': [(TYPE_ADDRESS, toaddr, amount)]
+                'outputs': [(TYPE_ADDRESS, addr, amount)]
             }
         else:
             return {
