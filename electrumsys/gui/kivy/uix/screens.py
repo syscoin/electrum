@@ -381,14 +381,12 @@ class SendScreen(CScreen):
         
         msg = None
         if asset_guid is not None:
-            asset_list = self.wallet.get_assets()
-            for asset in asset_list:
-                if asset['asset_guid'] == asset_guid:
-                    msg = [
-                        _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount, asset['symbol'], asset['precision']),
-                        _("Mining fee") + ": " + self.app.format_amount_and_units(fee),
-                    ]
-                    break;
+            asset_symbol = self.wallet.get_asset_symbol(asset_guid)
+            asset_precision = self.wallet.get_asset_precision(asset_guid)
+            msg = [
+                _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount, asset_symbol, asset_precision),
+                _("Mining fee") + ": " + self.app.format_amount_and_units(fee),
+            ]
         if msg is None:  
             msg = [
                 _("Amount to be sent") + ": " + self.app.format_amount_and_units(amount),

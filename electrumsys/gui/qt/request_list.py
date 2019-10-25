@@ -123,13 +123,11 @@ class RequestList(MyTreeView):
             timestamp = req.get('time', 0)
             expiration = req.get('exp', None)
             amount = req.get('amount')
-            asset_guid = item.get('asset_guid', None)
-            asset_list = self.parent.wallet.get_assets()
+            asset_guid = req.get('asset_guid', None)
             asset_symbol = "SYS"
-            for asset in asset_list:
-                if asset['asset_guid'] == asset_guid:
-                    asset_symbol = asset['symbol']
-                    break
+            if asset_guid is not None:
+                asset_symbol = self.wallet.get_asset_symbol(asset_guid)
+
             message = req.get('message') or req.get('memo')
             date = format_time(timestamp)
             amount_str = self.parent.format_amount(amount) if amount else ""

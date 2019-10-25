@@ -242,7 +242,7 @@ class Abstract_Wallet(AddressSynchronizer):
         self.contacts = Contacts(self.storage)
         self._coin_price_cache = {}
         self.asset_list = []
-
+        self.asset_list_dict = {}
         self.assets_requested = False
         # lightning
         ln_xprv = self.storage.get('lightning_privkey2')
@@ -1108,6 +1108,8 @@ class Abstract_Wallet(AddressSynchronizer):
                 for asset in result_:
                     asset_updated = False
                     for x in range(len(self.asset_list)):
+                        if asset['asset_guid'] not in self.asset_list_dict:
+                            self.asset_list_dict[asset['asset_guid']] = asset
                         if asset['asset_guid'] == self.asset_list[x]['asset_guid'] \
                                 and asset['address'] == self.asset_list[x]['address']:
                             if asset['balance'] != self.asset_list[x]['balance']:
@@ -1418,6 +1420,22 @@ class Abstract_Wallet(AddressSynchronizer):
 
     def get_assets(self):
         return self.asset_list
+
+    def get_asset_symbol(self, asset_guid):
+        if asset_guid is None:
+            return "SYS"
+        if asset_guid in self.asset_list_dict:
+            return self.asset_list_dict[asset_guid]['symbol']
+        else:
+            return "UNKNOWN"
+
+    def get_asset_precision(self, asset_guid):
+        if asset_guid is None:
+            return 8
+        if asset_guid in self.asset_list_dict:
+            return self.asset_list_dict[asset_guid]['precision']
+        else:
+            return 8
 
     def get_assets_summary(self):
         assets_by_asset = {}

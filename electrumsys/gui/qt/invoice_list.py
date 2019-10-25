@@ -123,12 +123,10 @@ class InvoiceList(MyTreeView):
             amount = item['amount']
             timestamp = item.get('time', 0)
             asset_guid = item.get('asset_guid', None)
-            asset_list = self.parent.wallet.get_assets()
-            asset_symbol = "SYS"
-            for asset in asset_list:
-                if asset['asset_guid'] == asset_guid:
-                    asset_symbol = asset['symbol']
-                    break
+            if asset_guid is not None: 
+                asset_symbol = self.parent.wallet.get_asset_symbol(asset_guid)
+            else:  
+                asset_symbol = "SYS"
             date_str = format_time(timestamp) if timestamp else _('Unknown')
             amount_str = self.parent.format_amount(amount, whitespaces=True)
             labels = [date_str, asset_symbol, message, amount_str, status_str]

@@ -1687,7 +1687,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
 
 
     def set_selected_asset(self, guid, address):
-        self.redraw_asset_selection_combo(guid, address, self.asset_e)
+        self.redraw_asset_selection_combo(guid, address, self.asset_e, self.amount_e)
 
     def redraw_asset_selection_combo(self, guid, address, asset_e, amount_e):
         self.updating_asset_list = True
@@ -1888,7 +1888,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             if self.check_send_tab_onchain_outputs_and_show_errors(outputs):
                 return
             message = self.message_e.text()
-            asset_guid = self.selected_asset_guid
+            asset_guid = self.asset_e.selected_asset_guid
             return self.wallet.create_invoice(asset_guid, outputs, message, self.payment_request, self.payto_URI)
 
     def do_save_invoice(self):
@@ -1984,16 +1984,14 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         # confirmation dialog
         msg = None
         if asset_guid is not None:
-            asset_list = self.wallet.get_assets()
-            for asset in asset_list:
-                if asset['asset_guid'] == asset_guid:
-                    if amount == '!':
-                        amount = asset['balance']
-                    msg = [
-                        _("Amount to be sent") + ": " + self.format_amount_and_units(amount, self.asset_e, asset['symbol'], asset['precision']),
-                        _("Mining fee") + ": " + self.format_amount_and_units(fee),
-                    ]
-                    break;
+            asset_symbol = self.wallet.get_asset_symbol(asset_guid)
+            asset_precision = self.wallet.get_asset_precision(asset_guid)
+            if amount == '!':
+                amount = asset['balance']
+            msg = [
+                _("Amount to be sent") + ": " + self.format_amount_and_units(amount, self.asset_e, asset_symbol, asset_precision),
+                _("Mining fee") + ": " + self.format_amount_and_units(fee),
+            ]
         if msg is None: 
             if amount == '!':
                 amount = tx.output_value()
@@ -2313,7 +2311,6 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
             foundAmountIdx = False
             # populate drop down list items
             for allocation in asset_list:
-                print("i {} j {} allocation {}".format(allocation))
                 asset_e.addItem("{} ({}:{}) {}".format( allocation['address'], allocation['asset_guid'],
                                                         allocation['symbol'], self.format_amount(allocation['balance'],
                                                                                         whitespaces=True)))
@@ -2459,16 +2456,13 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
         expires = pr.get_expiration_date()
 
         grid.addWidget(QLabel(_("Asset") + ':'), 2, 0)
-        asset_list = self.wallet.get_assets()
         asset_symbol = "UNKNOWN"
         asset_guid = pr.get_asset_guid()
         if asset_guid is None:
             asset_symbol = "SYS"
         else:
-            for asset in asset_list:
-                if asset['asset_guid'] == asset_guid:
-                    asset_symbol = asset['symbol']
-                    break
+            asset_symbol = self.wallet.get_asset_symbol(asset_guid)
+
         grid.addWidget(QLabel(asset_symbol), 2, 1)
 
         grid.addWidget(QLabel(_("Memo") + ':'), 3, 0)
