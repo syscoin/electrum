@@ -1103,28 +1103,18 @@ class Abstract_Wallet(AddressSynchronizer):
                     self.logger.info("synchronize_assets: asyncio error {}".format(e))
                     return
                 self.logger.info("asset info synchronized: {}".format(result_))
-
-                changed_assets = []
+                new_asset_list = []
+                changed_asset = None
                 for asset in result_:
-                    asset_updated = False
-                    for x in range(len(self.asset_list)):
-                        if asset['asset_guid'] not in self.asset_list_dict:
-                            self.asset_list_dict[asset['asset_guid']] = asset
-                        if asset['asset_guid'] == self.asset_list[x]['asset_guid'] \
-                                and asset['address'] == self.asset_list[x]['address']:
-                            if asset['balance'] != self.asset_list[x]['balance']:
-                                self.asset_list[x] = asset
-                                changed_assets.append(asset)
-                            asset_updated = True
-                            break
-
-                    if not asset_updated:
-                        self.asset_list.append(asset)
-                        changed_assets.append(asset)
-
+                    new_asset_list.append(asset)
+                
+                for x in range(len(self.asset_list)):
+                    if self.asset_list[x]['asset_guid'] != new_asset_list[x]['asset_guid'] or self.asset_list[x]['address'] != new_asset_list[x]['address'] or self.asset_list[x]['balance'] != new_asset_list[x]['balance']:
+                        changed_asset = new_asset_list[x]
+                        break
+                self.asset_list = new_asset_list
                 if callback is not None:
-                    callback(changed_assets, notify_flag)
-                return changed_assets
+                    callback(changed_asset, notify_flag)
             except RequestTimedOut as e:
                 if e is not TimeoutError:
                     raise e
