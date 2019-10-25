@@ -44,7 +44,7 @@ class AssetList(MyTreeView):
     filter_columns = [0, 1, 2, 3]  # Guid, Symbol, Address, Balance
 
     def __init__(self, parent=None):
-        super().__init__(parent, self.create_menu, stretch_column=self.Columns.ADDRESS)
+        super().__init__(parent, self.create_menu, stretch_column=self.Columns.ADDRESS, editable_columns=[])
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.setModel(QStandardItemModel(self))
