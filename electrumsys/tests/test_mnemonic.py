@@ -1,11 +1,11 @@
 from typing import NamedTuple, Optional
 
-from electrumsys import keystore
-from electrumsys import mnemonic
-from electrumsys import old_mnemonic
-from electrumsys.util import bh2u, bfh
-from electrumsys.mnemonic import is_new_seed, is_old_seed, seed_type
-from electrumsys.version import SEED_PREFIX_SW, SEED_PREFIX
+from electrum import keystore
+from electrum import mnemonic
+from electrum import old_mnemonic
+from electrum.util import bh2u, bfh
+from electrum.mnemonic import is_new_seed, is_old_seed, seed_type
+from electrum.version import SEED_PREFIX_SW, SEED_PREFIX
 
 from . import ElectrumSysTestCase
 from .test_wallet_vertical import UNICODE_HORROR, UNICODE_HORROR_HEX
@@ -98,7 +98,7 @@ SEED_TEST_CASES = {
 class Test_NewMnemonic(ElectrumSysTestCase):
 
     def test_mnemonic_to_seed_basic(self):
-        # note: not a valid electrumsys seed
+        # note: not a valid electrum seed
         seed = mnemonic.Mnemonic.mnemonic_to_seed(mnemonic='foobar', passphrase='none')
         self.assertEqual('741b72fd15effece6bfe5a26a52184f66811bd2be363190e07a42cca442b1a5bb22b3ad0eb338197287e6d314866c7fba863ac65d3f156087a5052ebc7157fce',
                          bh2u(seed))

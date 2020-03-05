@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -28,7 +28,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QDialog, QWidget, QLabel, QVBoxLayout, QCheckBox,
                              QGridLayout, QPushButton, QLineEdit, QTabWidget)
 
-from electrumsys.i18n import _
+from electrum.i18n import _
 from .util import HelpLabel, MyTreeView, Buttons
 
 

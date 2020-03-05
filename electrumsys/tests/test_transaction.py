@@ -1,8 +1,8 @@
-from electrumsys import transaction
-from electrumsys.transaction import TxOutputForUI, tx_from_str
-from electrumsys.bitcoin import TYPE_ADDRESS
-from electrumsys.keystore import xpubkey_to_address
-from electrumsys.util import bh2u, bfh
+from electrum import transaction
+from electrum.transaction import TxOutputForUI, tx_from_str
+from electrum.bitcoin import TYPE_ADDRESS
+from electrum.keystore import xpubkey_to_address
+from electrum.util import bh2u, bfh
 
 from . import ElectrumSysTestCase, TestCaseForTestnet
 from .test_bitcoin import needs_test_with_all_ecc_implementations

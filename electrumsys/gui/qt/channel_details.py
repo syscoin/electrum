@@ -4,12 +4,12 @@ import PyQt5.QtGui as QtGui
 import PyQt5.QtWidgets as QtWidgets
 import PyQt5.QtCore as QtCore
 
-from electrumsys.i18n import _
-from electrumsys.util import bh2u, format_time
-from electrumsys.lnutil import format_short_channel_id, LOCAL, REMOTE, UpdateAddHtlc, Direction
-from electrumsys.lnchannel import htlcsum
-from electrumsys.lnaddr import LnAddr, lndecode
-from electrumsys.bitcoin import COIN
+from electrum.i18n import _
+from electrum.util import bh2u, format_time
+from electrum.lnutil import format_short_channel_id, LOCAL, REMOTE, UpdateAddHtlc, Direction
+from electrum.lnchannel import htlcsum
+from electrum.lnaddr import LnAddr, lndecode
+from electrum.bitcoin import COIN
 
 if TYPE_CHECKING:
     from .main_window import ElectrumSysWindow

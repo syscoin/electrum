@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2014 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QWidget
 
 from .qrcodewidget import QRCodeWidget
 
-from electrumsys.i18n import _
+from electrum.i18n import _
 
 
 class QR_Window(QWidget):
@@ -36,7 +36,7 @@ class QR_Window(QWidget):
     def __init__(self, win):
         QWidget.__init__(self)
         self.win = win
-        self.setWindowTitle('ElectrumSys - '+_('Payment Request'))
+        self.setWindowTitle('Electrum - '+_('Payment Request'))
         self.setMinimumSize(800, 800)
         self.setFocusPolicy(Qt.NoFocus)
         main_box = QHBoxLayout()

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 The ElectrumSys developers
+# Copyright (C) 2019 The Electrum developers
 # Distributed under the MIT software license, see the accompanying
 # file LICENCE or http://www.opensource.org/licenses/mit-license.php
 
@@ -40,14 +40,14 @@ class LogFormatterForConsole(logging.Formatter):
         return text
 
 
-# try to make console log lines short... no timestamp, short levelname, no "electrumsys."
+# try to make console log lines short... no timestamp, short levelname, no "electrum."
 console_formatter = LogFormatterForConsole(fmt="%(levelname).1s | %(name)s | %(message)s")
 
 
 def _shorten_name_of_logrecord(record: logging.LogRecord) -> logging.LogRecord:
     record = copy.copy(record)  # avoid mutating arg
     # strip the main module name from the logger name
-    if record.name.startswith("electrumsys."):
+    if record.name.startswith("electrum."):
         record.name = record.name[9:]
     # manual map to shorten common module names
     record.name = record.name.replace("interface.Interface", "interface", 1)
@@ -68,8 +68,8 @@ console_stderr_handler.setFormatter(console_formatter)
 console_stderr_handler.setLevel(logging.WARNING)
 root_logger.addHandler(console_stderr_handler)
 
-# creates a logger specifically for electrumsys library
-electrumsys_logger = logging.getLogger("electrumsys")
+# creates a logger specifically for electrum library
+electrumsys_logger = logging.getLogger("electrum")
 electrumsys_logger.setLevel(logging.DEBUG)
 
 
@@ -188,7 +188,7 @@ class ShortcutFilteringFilter(logging.Filter):
 # --- External API
 
 def get_logger(name: str) -> logging.Logger:
-    if name.startswith("electrumsys."):
+    if name.startswith("electrum."):
         name = name[9:]
     return electrumsys_logger.getChild(name)
 
@@ -244,7 +244,7 @@ def configure_logging(config):
 
     from . import ELECTRUMSYS_VERSION
     from .constants import GIT_REPO_URL
-    _logger.info(f"ElectrumSys version: {ELECTRUMSYS_VERSION} - https://electrum.syscoin.org - {GIT_REPO_URL}")
+    _logger.info(f"Electrum version: {ELECTRUMSYS_VERSION} - https://electrum.syscoin.org - {GIT_REPO_URL}")
     _logger.info(f"Python version: {sys.version}. On platform: {describe_os_version()}")
     _logger.info(f"Logging to file: {str(_logfile_path)}")
     _logger.info(f"Log filters: verbosity {repr(verbosity)}, verbosity_shortcuts {repr(verbosity_shortcuts)}")

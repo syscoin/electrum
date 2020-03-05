@@ -1,4 +1,4 @@
-from electrumsys.plugins.revealer.revealer import RevealerPlugin
+from electrum.plugins.revealer.revealer import RevealerPlugin
 
 from . import ElectrumSysTestCase
 

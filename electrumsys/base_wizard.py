@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2016 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -310,7 +310,7 @@ class BaseWizard(Logger):
             if sys.platform == 'win32':
                 msg += _('If your device is not detected on Windows, go to "Settings", "Devices", "Connected devices", '
                          'and do "Remove device". Then, plug your device again.') + '\n'
-                msg += _('While this is less than ideal, it might help if you run ElectrumSys as Administrator.') + '\n'
+                msg += _('While this is less than ideal, it might help if you run Electrum as Administrator.') + '\n'
             else:
                 msg += _('On Linux, you might have to add a new permission to your udev rules.') + '\n'
             msg += '\n\n'

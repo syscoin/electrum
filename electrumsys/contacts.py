@@ -1,4 +1,4 @@
-# ElectrumSys - Lightweight Bitcoin Client
+# Electrum - Lightweight Bitcoin Client
 # Copyright (c) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person

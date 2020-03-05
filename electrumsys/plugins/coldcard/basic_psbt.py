@@ -2,7 +2,7 @@
 # basic_psbt.py - yet another PSBT parser/serializer but used only for test cases.
 #
 # - history: taken from coldcard-firmware/testing/psbt.py
-# - trying to minimize electrumsys code in here, and generally, dependancies.
+# - trying to minimize electrum code in here, and generally, dependancies.
 #
 import io
 import struct
@@ -10,7 +10,7 @@ from base64 import b64decode
 from binascii import a2b_hex, b2a_hex
 from struct import pack, unpack
 
-from electrumsys.transaction import Transaction
+from electrum.transaction import Transaction
 
 # BIP-174 (aka PSBT) defined values
 #

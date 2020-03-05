@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - Lightweight Bitcoin Client
+# Electrum - Lightweight Bitcoin Client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -30,8 +30,8 @@ from decimal import Decimal
 
 from kivy.clock import Clock
 
-from electrumsys.i18n import _
-from electrumsys.plugin import hook
+from electrum.i18n import _
+from electrum.plugin import hook
 from .trustedcoin import TrustedCoinPlugin, server, KIVY_DISCLAIMER, TrustedCoinException, ErrorConnectingServer
 
 

@@ -1,20 +1,20 @@
 #
-# Coldcard ElectrumSys plugin main code.
+# Coldcard Electrum plugin main code.
 #
 #
 from struct import pack, unpack
 import os, sys, time, io
 import traceback
 
-from electrumsys.bip32 import BIP32Node, InvalidMasterKeyVersionBytes
-from electrumsys.i18n import _
-from electrumsys.plugin import Device, hook
-from electrumsys.keystore import Hardware_KeyStore
-from electrumsys.transaction import Transaction, multisig_script
-from electrumsys.wallet import Standard_Wallet, Multisig_Wallet
-from electrumsys.util import bfh, bh2u, versiontuple, UserFacingException
-from electrumsys.base_wizard import ScriptTypeNotSupported
-from electrumsys.logging import get_logger
+from electrum.bip32 import BIP32Node, InvalidMasterKeyVersionBytes
+from electrum.i18n import _
+from electrum.plugin import Device, hook
+from electrum.keystore import Hardware_KeyStore
+from electrum.transaction import Transaction, multisig_script
+from electrum.wallet import Standard_Wallet, Multisig_Wallet
+from electrum.util import bfh, bh2u, versiontuple, UserFacingException
+from electrum.base_wizard import ScriptTypeNotSupported
+from electrum.logging import get_logger
 
 from ..hw_wallet import HW_PluginBase
 from ..hw_wallet.plugin import LibraryFoundButUnusable, only_hook_if_libraries_available
@@ -42,7 +42,7 @@ try:
         # avoid use of pycoin for MiTM message signature test
         def mitm_verify(self, sig, expect_xpub):
             # verify a signature (65 bytes) over the session key, using the master bip32 node
-            # - customized to use specific EC library of ElectrumSys.
+            # - customized to use specific EC library of Electrum.
             pubkey = BIP32Node.from_xkey(expect_xpub).eckey
             try:
                 pubkey.verify_message_hash(sig[1:65], self.session_key)
@@ -186,7 +186,7 @@ class CKCCClient:
     def ping_check(self):
         # check connection is working
         assert self.dev.session_key, 'not encrypted?'
-        req = b'1234 ElectrumSys Plugin 4321'      # free up to 59 bytes
+        req = b'1234 Electrum Plugin 4321'      # free up to 59 bytes
         try:
             echo = self.dev.send_recv(CCProtocolPacker.ping(req))
             assert echo == req
@@ -435,7 +435,7 @@ class Coldcard_KeyStore(Hardware_KeyStore):
 
     @staticmethod
     def _encode_txin_type(txin_type):
-        # Map from ElectrumSys code names to our code numbers.
+        # Map from Electrum code names to our code numbers.
         return {'standard': AF_CLASSIC, 'p2pkh': AF_CLASSIC,
                 'p2sh': AF_P2SH,
                 'p2wpkh-p2sh': AF_P2WPKH_P2SH,
@@ -590,7 +590,7 @@ class ColdcardPlugin(HW_PluginBase):
         # Build the text file Coldcard needs to understand the multisig wallet
         # it is participating in. All involved Coldcards can share same file.
 
-        print('# Exported from ElectrumSys', file=fp)
+        print('# Exported from Electrum', file=fp)
         print(f'Name: {name:.20s}', file=fp)
         print(f'Policy: {wallet.m} of {wallet.n}', file=fp)
         print(f'Format: {wallet.txin_type.upper()}' , file=fp)
@@ -664,9 +664,9 @@ class ColdcardPlugin(HW_PluginBase):
         # PROBLEM: wallet.sign_transaction() does not pass in the wallet to the individual
         # keystores, and we need to know about our co-signers at that time.
         # FIXME the keystore needs a reference to the wallet object because
-        #       it constructs a PSBT from an electrumsys tx object inside keystore.sign_transaction.
+        #       it constructs a PSBT from an electrum tx object inside keystore.sign_transaction.
         #       instead keystore.sign_transaction's API should be changed such that its input
-        #       *is* a PSBT and not an electrumsys tx object
+        #       *is* a PSBT and not an electrum tx object
         for ks in wallet.get_keystores():
             if type(ks) == Coldcard_KeyStore:
                 if not ks.my_wallet:

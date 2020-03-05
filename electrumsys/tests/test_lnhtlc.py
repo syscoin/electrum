@@ -2,8 +2,8 @@ from pprint import pprint
 import unittest
 from typing import NamedTuple
 
-from electrumsys.lnutil import RECEIVED, LOCAL, REMOTE, SENT, HTLCOwner, Direction
-from electrumsys.lnhtlc import HTLCManager
+from electrum.lnutil import RECEIVED, LOCAL, REMOTE, SENT, HTLCOwner, Direction
+from electrum.lnhtlc import HTLCManager
 
 from . import ElectrumSysTestCase
 

@@ -10,10 +10,10 @@ from kivy.lang import Builder
 from kivy.uix.label import Label
 from kivy.utils import platform
 
-from electrumsys.gui.kivy.i18n import _
+from electrum.gui.kivy.i18n import _
 
-from electrumsys.base_crash_reporter import BaseCrashReporter
-from electrumsys.logging import Logger
+from electrum.base_crash_reporter import BaseCrashReporter
+from electrum.logging import Logger
 
 
 Builder.load_string('''
@@ -89,7 +89,7 @@ class CrashReporter(BaseCrashReporter, Factory.Popup):
 
 
 [b]Additional information[/b]
- * ElectrumSys version: {app_version}
+ * Electrum version: {app_version}
  * Operating system: {os}
  * Wallet type: {wallet_type}
  * Locale: {locale}

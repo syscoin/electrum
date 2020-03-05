@@ -17,7 +17,7 @@ _min_python_version_tuple = tuple(map(int, (MIN_PYTHON_VERSION.split("."))))
 
 
 if sys.version_info[:3] < _min_python_version_tuple:
-    sys.exit("Error: ElectrumSys requires Python version >= %s..." % MIN_PYTHON_VERSION)
+    sys.exit("Error: Electrum requires Python version >= %s..." % MIN_PYTHON_VERSION)
 
 with open('contrib/requirements/requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -26,7 +26,7 @@ with open('contrib/requirements/requirements-hw.txt') as f:
     requirements_hw = f.read().splitlines()
 
 # load version.py; needlessly complicated alternative to "imp.load_source":
-version_spec = importlib.util.spec_from_file_location('version', 'electrumsys/version.py')
+version_spec = importlib.util.spec_from_file_location('version', 'electrum/version.py')
 version_module = version = importlib.util.module_from_spec(version_spec)
 version_spec.loader.exec_module(version_module)
 
@@ -46,8 +46,8 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
         else:
             usr_share = os.path.expanduser('~/.local/share')
     data_files += [
-        (os.path.join(usr_share, 'applications/'), ['electrumsys.desktop']),
-        (os.path.join(usr_share, icons_dirname), ['electrumsys/gui/icons/electrumsys.png']),
+        (os.path.join(usr_share, 'applications/'), ['electrum.desktop']),
+        (os.path.join(usr_share, icons_dirname), ['electrum/gui/icons/electrum.png']),
     ]
 
 extras_require = {
@@ -58,31 +58,31 @@ extras_require['full'] = [pkg for sublist in list(extras_require.values()) for p
 
 
 setup(
-    name="ElectrumSys",
+    name="Electrum",
     version=version.ELECTRUMSYS_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,
     extras_require=extras_require,
     packages=[
-        'electrumsys',
-        'electrumsys.gui',
-        'electrumsys.gui.qt',
-        'electrumsys.plugins',
-    ] + [('electrumsys.plugins.'+pkg) for pkg in find_packages('electrumsys/plugins')],
+        'electrum',
+        'electrum.gui',
+        'electrum.gui.qt',
+        'electrum.plugins',
+    ] + [('electrum.plugins.'+pkg) for pkg in find_packages('electrum/plugins')],
     package_dir={
-        'electrumsys': 'electrumsys'
+        'electrum': 'electrum'
     },
     package_data={
         '': ['*.txt', '*.json', '*.ttf', '*.otf'],
-        'electrumsys': [
+        'electrum': [
             'wordlist/*.txt',
-            'locale/*/LC_MESSAGES/electrumsys.mo',
+            'locale/*/LC_MESSAGES/electrum.mo',
         ],
-        'electrumsys.gui': [
+        'electrum.gui': [
             'icons/*',
         ],
     },
-    scripts=['electrumsys/electrumsys'],
+    scripts=['electrum/electrum'],
     data_files=data_files,
     description="Lightweight Syscoin Wallet",
     author="Jagdeep Sidhu",

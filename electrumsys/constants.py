@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# ElectrumSys - lightweight Bitcoin client
-# Copyright (C) 2018 The ElectrumSys developers
+# Electrum - lightweight Bitcoin client
+# Copyright (C) 2018 The Electrum developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -40,8 +40,8 @@ def read_json(filename, default):
     return r
 
 
-GIT_REPO_URL = "https://github.com/syscoin/electrumsys"
-GIT_REPO_ISSUES_URL = "https://github.com/syscoin/electrumsys/issues"
+GIT_REPO_URL = "https://github.com/syscoin/electrum"
+GIT_REPO_ISSUES_URL = "https://github.com/syscoin/electrum/issues"
 
 
 class AbstractNet:

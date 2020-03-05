@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- mode: python -*-
 #
-# ElectrumSys - lightweight Bitcoin client
-# Copyright (C) 2016  The ElectrumSys developers
+# Electrum - lightweight Bitcoin client
+# Copyright (C) 2016  The Electrum developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -30,13 +30,13 @@ from functools import partial
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QVBoxLayout, QLineEdit, QHBoxLayout, QLabel
 
-from electrumsys.gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
-from electrumsys.gui.qt.util import (read_QIcon, WWLabel, OkButton, WindowModalDialog,
+from electrum.gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
+from electrum.gui.qt.util import (read_QIcon, WWLabel, OkButton, WindowModalDialog,
                                   Buttons, CancelButton, TaskThread, char_width_in_lineedit)
 
-from electrumsys.i18n import _
-from electrumsys.logging import Logger
-from electrumsys.util import parse_URI, InvalidBitcoinURI
+from electrum.i18n import _
+from electrum.logging import Logger
+from electrum.util import parse_URI, InvalidBitcoinURI
 
 from .plugin import OutdatedHwFirmwareException
 
@@ -191,9 +191,9 @@ class QtHandlerBase(QObject, Logger):
 
 
 
-from electrumsys.plugin import hook
-from electrumsys.util import UserCancelled
-from electrumsys.gui.qt.main_window import StatusBarButton
+from electrum.plugin import hook
+from electrum.util import UserCancelled
+from electrum.gui.qt.main_window import StatusBarButton
 
 class QtPluginBase(object):
 

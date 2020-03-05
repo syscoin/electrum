@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2011 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -803,7 +803,7 @@ class Transaction:
                 return 0x41
             elif x_pubkey[0:2] == 'ff':  # bip32 extended pubkey
                 return 0x21
-            elif x_pubkey[0:2] == 'fe':  # old electrumsys extended pubkey
+            elif x_pubkey[0:2] == 'fe':  # old electrum extended pubkey
                 return 0x41
         except Exception as e:
             pass

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -42,13 +42,13 @@ from PyQt5.QtWidgets import (QApplication, QSystemTrayIcon, QWidget, QMenu,
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 import PyQt5.QtCore as QtCore
 
-from electrumsys.i18n import _, set_language
-from electrumsys.plugin import run_hook
-from electrumsys.base_wizard import GoBack
-from electrumsys.util import (UserCancelled, profiler,
+from electrum.i18n import _, set_language
+from electrum.plugin import run_hook
+from electrum.base_wizard import GoBack
+from electrum.util import (UserCancelled, profiler,
                            WalletFileException, BitcoinException, get_new_wallet_name)
-from electrumsys.wallet import Wallet, Abstract_Wallet
-from electrumsys.logging import Logger
+from electrum.wallet import Wallet, Abstract_Wallet
+from electrum.logging import Logger
 
 from .installwizard import InstallWizard, WalletAlreadyOpenInMemory
 from .util import get_default_language, read_QIcon, ColorScheme, custom_message_box
@@ -59,9 +59,9 @@ from .lightning_dialog import LightningDialog
 from .watchtower_dialog import WatchtowerDialog
 
 if TYPE_CHECKING:
-    from electrumsys.daemon import Daemon
-    from electrumsys.simple_config import SimpleConfig
-    from electrumsys.plugin import Plugins
+    from electrum.daemon import Daemon
+    from electrum.simple_config import SimpleConfig
+    from electrum.plugin import Plugins
 
 
 class OpenFileEventFilter(QObject):
@@ -99,7 +99,7 @@ class ElectrumSysGui(Logger):
         if hasattr(QtCore.Qt, "AA_ShareOpenGLContexts"):
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
         if hasattr(QGuiApplication, 'setDesktopFileName'):
-            QGuiApplication.setDesktopFileName('electrumsys.desktop')
+            QGuiApplication.setDesktopFileName('electrum.desktop')
         self.gui_thread = threading.current_thread()
         self.config = config
         self.daemon = daemon
@@ -108,7 +108,7 @@ class ElectrumSysGui(Logger):
         self.efilter = OpenFileEventFilter(self.windows)
         self.app = QElectrumSysApplication(sys.argv)
         self.app.installEventFilter(self.efilter)
-        self.app.setWindowIcon(read_QIcon("electrumsys.png"))
+        self.app.setWindowIcon(read_QIcon("electrum.png"))
         # timer
         self.timer = QTimer(self.app)
         self.timer.setSingleShot(False)
@@ -123,7 +123,7 @@ class ElectrumSysGui(Logger):
         # init tray
         self.dark_icon = self.config.get("dark_icon", False)
         self.tray = QSystemTrayIcon(self.tray_icon(), None)
-        self.tray.setToolTip('ElectrumSys')
+        self.tray.setToolTip('Electrum')
         self.tray.activated.connect(self.tray_activated)
         self.build_tray_menu()
         self.tray.show()
@@ -164,7 +164,7 @@ class ElectrumSysGui(Logger):
             submenu.addAction(_("Close"), window.close)
         m.addAction(_("Dark/Light"), self.toggle_tray_icon)
         m.addSeparator()
-        m.addAction(_("Exit ElectrumSys"), self.close)
+        m.addAction(_("Exit Electrum"), self.close)
 
     def tray_icon(self):
         if self.dark_icon:
@@ -212,7 +212,7 @@ class ElectrumSysGui(Logger):
 
     def show_network_dialog(self, parent):
         if not self.daemon.network:
-            parent.show_warning(_('You are using ElectrumSys in offline mode; restart ElectrumSys if you want to get connected'), title=_('Offline'))
+            parent.show_warning(_('You are using Electrum in offline mode; restart Electrum if you want to get connected'), title=_('Offline'))
             return
         if self.network_dialog:
             self.network_dialog.on_update()

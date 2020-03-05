@@ -5,11 +5,11 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget, QGridLayout
 from PyQt5.QtWidgets import QFileDialog
 
-from electrumsys.i18n import _
-from electrumsys.plugin import hook
-from electrumsys.wallet import Standard_Wallet, Multisig_Wallet
-from electrumsys.gui.qt.util import WindowModalDialog, CloseButton, get_parent_main_window, Buttons
-from electrumsys.transaction import Transaction
+from electrum.i18n import _
+from electrum.plugin import hook
+from electrum.wallet import Standard_Wallet, Multisig_Wallet
+from electrum.gui.qt.util import WindowModalDialog, CloseButton, get_parent_main_window, Buttons
+from electrum.transaction import Transaction
 
 from .coldcard import ColdcardPlugin, xfp2str
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
@@ -141,7 +141,7 @@ class Plugin(ColdcardPlugin, QtPluginBase):
 
                     psbts.append(psbt)
             except (AssertionError, ValueError, IOError, os.error) as reason:
-                window.show_critical(_("ElectrumSys was unable to open your PSBT file") + "\n" + str(reason), title=_("Unable to read file"))
+                window.show_critical(_("Electrum was unable to open your PSBT file") + "\n" + str(reason), title=_("Unable to read file"))
                 return
 
         warn = []
@@ -173,7 +173,7 @@ class Plugin(ColdcardPlugin, QtPluginBase):
             # Lots of potential warnings...
             window.show_warning('\n\n'.join(warn), title=_("PSBT warnings"))
 
-        # Construct an ElectrumSys transaction object from data in first PSBT file.
+        # Construct an Electrum transaction object from data in first PSBT file.
         try:
             tx = recover_tx_from_psbt(first, wallet)
         except BaseException as exc:

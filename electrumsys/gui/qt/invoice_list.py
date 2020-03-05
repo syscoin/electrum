@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -29,13 +29,13 @@ from PyQt5.QtCore import Qt, QItemSelectionModel
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
 from PyQt5.QtWidgets import QHeaderView, QMenu, QVBoxLayout, QGridLayout, QLabel, QTreeWidget, QTreeWidgetItem
 
-from electrumsys.i18n import _
-from electrumsys.util import format_time, PR_UNPAID, PR_PAID, PR_INFLIGHT
-from electrumsys.util import get_request_status
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
-from electrumsys.lnutil import format_short_channel_id
-from electrumsys.bitcoin import COIN
-from electrumsys import constants
+from electrum.i18n import _
+from electrum.util import format_time, PR_UNPAID, PR_PAID, PR_INFLIGHT
+from electrum.util import get_request_status
+from electrum.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
+from electrum.lnutil import format_short_channel_id
+from electrum.bitcoin import COIN
+from electrum import constants
 
 from .util import (MyTreeView, read_QIcon, MONOSPACE_FONT,
                    import_meta_gui, export_meta_gui, pr_icons)

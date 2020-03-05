@@ -6,16 +6,16 @@ import struct
 from binascii import a2b_hex, b2a_hex
 from struct import pack, unpack
 
-from electrumsys.transaction import (Transaction, multisig_script, parse_redeemScript_multisig,
+from electrum.transaction import (Transaction, multisig_script, parse_redeemScript_multisig,
                                   NotRecognizedRedeemScript)
 
-from electrumsys.logging import get_logger
-from electrumsys.wallet import Standard_Wallet, Multisig_Wallet, Abstract_Wallet
-from electrumsys.keystore import xpubkey_to_pubkey, Xpub
-from electrumsys.util import bfh, bh2u
-from electrumsys.crypto import hash_160, sha256
-from electrumsys.bitcoin import DecodeBase58Check
-from electrumsys.i18n import _
+from electrum.logging import get_logger
+from electrum.wallet import Standard_Wallet, Multisig_Wallet, Abstract_Wallet
+from electrum.keystore import xpubkey_to_pubkey, Xpub
+from electrum.util import bfh, bh2u
+from electrum.crypto import hash_160, sha256
+from electrum.bitcoin import DecodeBase58Check
+from electrum.i18n import _
 
 from .basic_psbt import (
         PSBT_GLOBAL_UNSIGNED_TX, PSBT_GLOBAL_XPUB, PSBT_IN_NON_WITNESS_UTXO, PSBT_IN_WITNESS_UTXO,
@@ -324,7 +324,7 @@ def build_psbt(tx: Transaction, wallet: Abstract_Wallet):
 
 
 def recover_tx_from_psbt(first: BasicPSBT, wallet: Abstract_Wallet) -> Transaction:
-    # Take a PSBT object and re-construct the ElectrumSys transaction object.
+    # Take a PSBT object and re-construct the Electrum transaction object.
     # - does not include signatures, see merge_sigs_from_psbt
     # - any PSBT in the group could be used for this purpose; all must share tx details
     

@@ -4,8 +4,8 @@
 build/
 dist/
 *.egg/
-ElectrumSys.egg-info/
-electrumsys/locale/
+Electrum.egg-info/
+electrum/locale/
 .devlocaltmp/
 *_trial_temp
 packages
@@ -18,9 +18,9 @@ bin/
 .vscode
 
 # icons
-electrumsys/gui/kivy/theming/light-0.png
-electrumsys/gui/kivy/theming/light-1.png
-electrumsys/gui/kivy/theming/light.atlas
+electrum/gui/kivy/theming/light-0.png
+electrum/gui/kivy/theming/light-1.png
+electrum/gui/kivy/theming/light.atlas
 
 # tests/tox
 .tox/

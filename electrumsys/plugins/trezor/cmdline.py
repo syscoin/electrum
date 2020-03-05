@@ -1,4 +1,4 @@
-from electrumsys.plugin import hook
+from electrum.plugin import hook
 from .trezor import TrezorPlugin
 from ..hw_wallet import CmdLineHandler
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2014 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -30,9 +30,9 @@ from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QApplication, QPushButton
 
-from electrumsys.plugin import BasePlugin, hook
-from electrumsys.i18n import _
-from electrumsys.network import Network
+from electrum.plugin import BasePlugin, hook
+from electrum.i18n import _
+from electrum.network import Network
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse

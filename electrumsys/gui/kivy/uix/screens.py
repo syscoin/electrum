@@ -22,26 +22,26 @@ from kivy.lang import Builder
 from kivy.factory import Factory
 from kivy.utils import platform
 
-from electrumsys.bitcoin import TYPE_ADDRESS
-from electrumsys.util import profiler, parse_URI, format_time, InvalidPassword, NotEnoughFunds, Fiat
-from electrumsys.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
-from electrumsys import bitcoin, constants
-from electrumsys.transaction import TxOutput, Transaction, tx_from_str
-from electrumsys.util import send_exception_to_crash_reporter, parse_URI, InvalidBitcoinURI
-from electrumsys.util import PR_UNPAID, PR_PAID, PR_UNKNOWN, PR_EXPIRED, PR_INFLIGHT, TxMinedInfo, get_request_status, pr_expiration_values
-from electrumsys.plugin import run_hook
-from electrumsys.wallet import InternalAddressCorruption
-from electrumsys import simple_config
-from electrumsys.lnaddr import lndecode
-from electrumsys.lnutil import RECEIVED, SENT, PaymentFailure
+from electrum.bitcoin import TYPE_ADDRESS
+from electrum.util import profiler, parse_URI, format_time, InvalidPassword, NotEnoughFunds, Fiat
+from electrum.util import PR_TYPE_ONCHAIN, PR_TYPE_ONCHAIN_ASSET, PR_TYPE_LN
+from electrum import bitcoin, constants
+from electrum.transaction import TxOutput, Transaction, tx_from_str
+from electrum.util import send_exception_to_crash_reporter, parse_URI, InvalidBitcoinURI
+from electrum.util import PR_UNPAID, PR_PAID, PR_UNKNOWN, PR_EXPIRED, PR_INFLIGHT, TxMinedInfo, get_request_status, pr_expiration_values
+from electrum.plugin import run_hook
+from electrum.wallet import InternalAddressCorruption
+from electrum import simple_config
+from electrum.lnaddr import lndecode
+from electrum.lnutil import RECEIVED, SENT, PaymentFailure
 
 from .dialogs.question import Question
 from .dialogs.lightning_open_channel import LightningOpenChannelDialog
 
-from electrumsys.gui.kivy.i18n import _
+from electrum.gui.kivy.i18n import _
 
 if TYPE_CHECKING:
-    from electrumsys.gui.kivy.main_window import ElectrumSysWindow
+    from electrum.gui.kivy.main_window import ElectrumSysWindow
 
 
 class HistoryRecycleView(RecycleView):
@@ -80,7 +80,7 @@ class CScreen(Factory.Screen):
 
     @profiler
     def load_screen(self):
-        self.screen = Builder.load_file('electrumsys/gui/kivy/uix/ui_screens/' + self.kvname + '.kv')
+        self.screen = Builder.load_file('electrum/gui/kivy/uix/ui_screens/' + self.kvname + '.kv')
         self.add_widget(self.screen)
         self.loaded = True
         self.update()
@@ -137,7 +137,7 @@ class HistoryScreen(CScreen):
             status = 0
             txpos = tx_item['txpos']
             status_str = 'unconfirmed' if timestamp is None else format_time(int(timestamp))
-            icon = "atlas://electrumsys/gui/kivy/theming/light/lightning"
+            icon = "atlas://electrum/gui/kivy/theming/light/lightning"
             message = tx_item['label']
             fee_msat = tx_item['fee_msat']
             fee = int(fee_msat/1000) if fee_msat else None
@@ -151,7 +151,7 @@ class HistoryScreen(CScreen):
                                         conf=tx_item['confirmations'],
                                         timestamp=tx_item['timestamp'])
             status, status_str = self.app.wallet.get_tx_status(tx_hash, tx_mined_info)
-            icon = "atlas://electrumsys/gui/kivy/theming/light/" + TX_ICONS[status]
+            icon = "atlas://electrum/gui/kivy/theming/light/" + TX_ICONS[status]
             message = tx_item['label'] or tx_hash
             fee = tx_item['fee_sat']
             fee_text = '' if fee is None else 'fee: %d sat'%fee
@@ -454,7 +454,7 @@ class ReceiveScreen(CScreen):
             self.screen.status = _('Payment received') if status == PR_PAID else ''
 
     def get_URI(self):
-        from electrumsys.util import create_bip21_uri
+        from electrum.util import create_bip21_uri
         amount = self.screen.amount
         if amount:
             a, u = self.screen.amount.split()

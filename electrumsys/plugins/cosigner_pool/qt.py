@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2014 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -29,16 +29,16 @@ from xmlrpc.client import ServerProxy
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import QPushButton
 
-from electrumsys import util, keystore, ecc, crypto
-from electrumsys import transaction
-from electrumsys.bip32 import BIP32Node
-from electrumsys.plugin import BasePlugin, hook
-from electrumsys.i18n import _
-from electrumsys.wallet import Multisig_Wallet
-from electrumsys.util import bh2u, bfh
+from electrum import util, keystore, ecc, crypto
+from electrum import transaction
+from electrum.bip32 import BIP32Node
+from electrum.plugin import BasePlugin, hook
+from electrum.i18n import _
+from electrum.wallet import Multisig_Wallet
+from electrum.util import bh2u, bfh
 
-from electrumsys.gui.qt.transaction_dialog import show_transaction
-from electrumsys.gui.qt.util import WaitingDialog
+from electrum.gui.qt.transaction_dialog import show_transaction
+from electrum.gui.qt.util import WaitingDialog
 
 import sys
 import traceback
@@ -161,7 +161,7 @@ class Plugin(BasePlugin):
             d.cosigner_send_button.hide()
 
     def cosigner_can_sign(self, tx, cosigner_xpub):
-        from electrumsys.keystore import is_xpubkey, parse_xpubkey
+        from electrum.keystore import is_xpubkey, parse_xpubkey
         xpub_set = set([])
         for txin in tx.inputs():
             for x_pubkey in txin['x_pubkeys']:

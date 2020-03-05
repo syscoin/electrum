@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -29,11 +29,11 @@ from PyQt5.QtCore import Qt, QPersistentModelIndex, QModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
 from PyQt5.QtWidgets import QAbstractItemView, QComboBox, QLabel, QMenu
 
-from electrumsys.i18n import _
-from electrumsys.util import block_explorer_URL, profiler
-from electrumsys.plugin import run_hook
-from electrumsys.bitcoin import is_address
-from electrumsys.wallet import InternalAddressCorruption
+from electrum.i18n import _
+from electrum.util import block_explorer_URL, profiler
+from electrum.plugin import run_hook
+from electrum.bitcoin import is_address
+from electrum.wallet import InternalAddressCorruption
 
 from .util import MyTreeView, MONOSPACE_FONT, ColorScheme, webopen
 
@@ -204,7 +204,7 @@ class AddressList(MyTreeView):
         self.filter()
 
     def create_menu(self, position):
-        from electrumsys.wallet import Multisig_Wallet
+        from electrum.wallet import Multisig_Wallet
         is_multisig = isinstance(self.wallet, Multisig_Wallet)
         can_delete = self.wallet.can_delete_address()
         selected = self.selected_in_column(self.Columns.ADDRESS)

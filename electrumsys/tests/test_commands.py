@@ -2,11 +2,11 @@ import unittest
 from unittest import mock
 from decimal import Decimal
 
-from electrumsys.util import create_and_start_event_loop
-from electrumsys.commands import Commands, eval_bool
-from electrumsys import storage
-from electrumsys.wallet import restore_wallet_from_text
-from electrumsys.simple_config import SimpleConfig
+from electrum.util import create_and_start_event_loop
+from electrum.commands import Commands, eval_bool
+from electrum import storage
+from electrum.wallet import restore_wallet_from_text
+from electrum.simple_config import SimpleConfig
 
 from . import TestCaseForTestnet, ElectrumSysTestCase
 

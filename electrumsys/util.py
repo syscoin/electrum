@@ -1,4 +1,4 @@
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2011 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -464,7 +464,7 @@ def assert_datadir_available(config_path):
         return
     else:
         raise FileNotFoundError(
-            'ElectrumSys datadir does not exist. Was it deleted while running?' + '\n' +
+            'Electrum datadir does not exist. Was it deleted while running?' + '\n' +
             'Should be at {}'.format(path))
 
 
@@ -560,11 +560,11 @@ def user_dir():
     if 'ANDROID_DATA' in os.environ:
         return android_data_dir()
     elif os.name == 'posix':
-        return os.path.join(os.environ["HOME"], ".electrumsys")
+        return os.path.join(os.environ["HOME"], ".electrum")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "ElectrumSys")
+        return os.path.join(os.environ["APPDATA"], "Electrum")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "ElectrumSys")
+        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum")
     else:
         #raise Exception("No home directory found in environment variables.")
         return
@@ -574,7 +574,7 @@ def resource_path(*parts):
     return os.path.join(pkg_dir, *parts)
 
 
-# absolute path to python package folder of electrumsys ("lib")
+# absolute path to python package folder of electrum ("lib")
 pkg_dir = os.path.split(os.path.realpath(__file__))[0]
 
 

@@ -4,8 +4,8 @@ from binascii import unhexlify, hexlify
 import pprint
 import unittest
 
-from electrumsys.lnaddr import shorten_amount, unshorten_amount, LnAddr, lnencode, lndecode, u5_to_bitarray, bitarray_to_u5
-from electrumsys.segwit_addr import bech32_encode, bech32_decode
+from electrum.lnaddr import shorten_amount, unshorten_amount, LnAddr, lnencode, lndecode, u5_to_bitarray, bitarray_to_u5
+from electrum.segwit_addr import bech32_encode, bech32_decode
 
 from . import ElectrumSysTestCase
 

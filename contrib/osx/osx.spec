@@ -4,10 +4,10 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, coll
 
 import sys, os
 
-PACKAGE='ElectrumSys'
-PYPKG='electrumsys'
+PACKAGE='Electrum'
+PYPKG='electrum'
 MAIN_SCRIPT='run_electrumsys'
-ICONS_FILE=PYPKG + '/gui/icons/electrumsys.icns'
+ICONS_FILE=PYPKG + '/gui/icons/electrum.icns'
 APP_SIGN = os.environ.get('APP_SIGN', '')
 
 def fail(*msg):
@@ -54,7 +54,7 @@ for i, x in enumerate(sys.argv):
 else:
     raise Exception('no version')
 
-electrumsys = os.path.abspath(".") + "/"
+electrum = os.path.abspath(".") + "/"
 block_cipher = None
 
 # see https://github.com/pyinstaller/pyinstaller/issues/2005
@@ -73,11 +73,11 @@ hiddenimports.remove('safetlib.qt.pinmatrix')
 
 
 datas = [
-    (electrumsys + PYPKG + '/*.json', PYPKG),
-    (electrumsys + PYPKG + '/wordlist/english.txt', PYPKG + '/wordlist'),
-    (electrumsys + PYPKG + '/locale', PYPKG + '/locale'),
-    (electrumsys + PYPKG + '/plugins', PYPKG + '/plugins'),
-    (electrumsys + PYPKG + '/gui/icons', PYPKG + '/gui/icons'),
+    (electrum + PYPKG + '/*.json', PYPKG),
+    (electrum + PYPKG + '/wordlist/english.txt', PYPKG + '/wordlist'),
+    (electrum + PYPKG + '/locale', PYPKG + '/locale'),
+    (electrum + PYPKG + '/plugins', PYPKG + '/plugins'),
+    (electrum + PYPKG + '/gui/icons', PYPKG + '/gui/icons'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('safetlib')
@@ -88,33 +88,33 @@ datas += collect_data_files('jsonrpcserver')
 datas += collect_data_files('jsonrpcclient')
 
 # Add the QR Scanner helper app
-datas += [(electrumsys + "contrib/osx/CalinsQRReader/build/Release/CalinsQRReader.app", "./contrib/osx/CalinsQRReader/build/Release/CalinsQRReader.app")]
+datas += [(electrum + "contrib/osx/CalinsQRReader/build/Release/CalinsQRReader.app", "./contrib/osx/CalinsQRReader/build/Release/CalinsQRReader.app")]
 
 # Add libusb so Trezor and Safe-T mini will work
-binaries = [(electrumsys + "contrib/osx/libusb-1.0.dylib", ".")]
-binaries += [(electrumsys + "contrib/osx/libsecp256k1.0.dylib", ".")]
+binaries = [(electrum + "contrib/osx/libusb-1.0.dylib", ".")]
+binaries += [(electrum + "contrib/osx/libsecp256k1.0.dylib", ".")]
 
 # Workaround for "Retro Look":
 binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
-a = Analysis([electrumsys+ MAIN_SCRIPT,
-              electrumsys+'electrumsys/gui/qt/main_window.py',
-              electrumsys+'electrumsys/gui/text.py',
-              electrumsys+'electrumsys/util.py',
-              electrumsys+'electrumsys/wallet.py',
-              electrumsys+'electrumsys/simple_config.py',
-              electrumsys+'electrumsys/bitcoin.py',
-              electrumsys+'electrumsys/dnssec.py',
-              electrumsys+'electrumsys/commands.py',
-              electrumsys+'electrumsys/plugins/cosigner_pool/qt.py',
-              electrumsys+'electrumsys/plugins/email_requests/qt.py',
-              electrumsys+'electrumsys/plugins/trezor/qt.py',
-              electrumsys+'electrumsys/plugins/safe_t/client.py',
-              electrumsys+'electrumsys/plugins/safe_t/qt.py',
-              electrumsys+'electrumsys/plugins/keepkey/qt.py',
-              electrumsys+'electrumsys/plugins/ledger/qt.py',
-              electrumsys+'electrumsys/plugins/coldcard/qt.py',
+a = Analysis([electrum+ MAIN_SCRIPT,
+              electrum+'electrum/gui/qt/main_window.py',
+              electrum+'electrum/gui/text.py',
+              electrum+'electrum/util.py',
+              electrum+'electrum/wallet.py',
+              electrum+'electrum/simple_config.py',
+              electrum+'electrum/bitcoin.py',
+              electrum+'electrum/dnssec.py',
+              electrum+'electrum/commands.py',
+              electrum+'electrum/plugins/cosigner_pool/qt.py',
+              electrum+'electrum/plugins/email_requests/qt.py',
+              electrum+'electrum/plugins/trezor/qt.py',
+              electrum+'electrum/plugins/safe_t/client.py',
+              electrum+'electrum/plugins/safe_t/qt.py',
+              electrum+'electrum/plugins/keepkey/qt.py',
+              electrum+'electrum/plugins/ledger/qt.py',
+              electrum+'electrum/plugins/coldcard/qt.py',
               ],
              binaries=binaries,
              datas=datas,
@@ -150,13 +150,13 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          icon=electrumsys+ICONS_FILE,
+          icon=electrum+ICONS_FILE,
           console=False)
 
 app = BUNDLE(exe,
              version = VERSION,
              name=PACKAGE + '.app',
-             icon=electrumsys+ICONS_FILE,
+             icon=electrum+ICONS_FILE,
              bundle_identifier=None,
              info_plist={
                 'NSHighResolutionCapable': 'True',

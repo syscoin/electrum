@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2011 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -674,7 +674,7 @@ class Interface(Logger):
 
     @classmethod
     def client_name(cls) -> str:
-        return f'electrumsys/{version.ELECTRUMSYS_VERSION}'
+        return f'electrum/{version.ELECTRUMSYS_VERSION}'
 
     def is_tor(self):
         return self.host.endswith('.onion')

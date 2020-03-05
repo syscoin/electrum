@@ -3,12 +3,12 @@ import getpass
 import datetime
 import logging
 
-from electrumsys import WalletStorage, Wallet
-from electrumsys.util import format_satoshis
-from electrumsys.bitcoin import is_address, COIN, TYPE_ADDRESS
-from electrumsys.transaction import TxOutput
-from electrumsys.network import TxBroadcastError, BestEffortRequestFailed
-from electrumsys.logging import console_stderr_handler
+from electrum import WalletStorage, Wallet
+from electrum.util import format_satoshis
+from electrum.bitcoin import is_address, COIN, TYPE_ADDRESS
+from electrum.transaction import TxOutput
+from electrum.network import TxBroadcastError, BestEffortRequestFailed
+from electrum.logging import console_stderr_handler
 
 _ = lambda x:x  # i18n
 
@@ -23,7 +23,7 @@ class ElectrumSysGui:
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
         if not storage.file_exists:
-            print("Wallet not found. try 'electrumsys create'")
+            print("Wallet not found. try 'electrum create'")
             exit()
         if storage.is_encrypted():
             password = getpass.getpass('Password:', stream=None)
@@ -221,12 +221,12 @@ class ElectrumSysGui:
             #self.update_contacts_tab()
 
     def network_dialog(self):
-        print("use 'electrumsys setconfig server/proxy' to change your network settings")
+        print("use 'electrum setconfig server/proxy' to change your network settings")
         return True
 
 
     def settings_dialog(self):
-        print("use 'electrumsys setconfig' to change your settings")
+        print("use 'electrum setconfig' to change your settings")
         return True
 
     def password_dialog(self):

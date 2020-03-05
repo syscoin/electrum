@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -196,7 +196,7 @@ class PayServer(Logger):
         app.add_routes([web.get('/api/get_invoice', self.get_request)])
         app.add_routes([web.get('/api/get_status', self.get_status)])
         app.add_routes([web.get('/bip70/{key}.bip70', self.get_bip70_request)])
-        app.add_routes([web.static(root, 'electrumsys/www')])
+        app.add_routes([web.static(root, 'electrum/www')])
         runner = web.AppRunner(app)
         await runner.setup()
         site = web.TCPSite(runner, port=port, host=host, ssl_context=self.config.get_ssl_context())
@@ -364,7 +364,7 @@ class Daemon(Logger):
             else:
                 response = "error: current GUI does not support multiple windows"
         else:
-            response = "Error: ElectrumSys is running in daemon mode. Please stop the daemon first."
+            response = "Error: Electrum is running in daemon mode. Please stop the daemon first."
         return response
 
     def load_wallet(self, path, password) -> Optional[Abstract_Wallet]:
@@ -475,7 +475,7 @@ class Daemon(Logger):
         gui_name = config.get('gui', 'qt')
         if gui_name in ['lite', 'classic']:
             gui_name = 'qt'
-        gui = __import__('electrumsys.gui.' + gui_name, fromlist=['electrumsys'])
+        gui = __import__('electrum.gui.' + gui_name, fromlist=['electrum'])
         self.gui_object = gui.ElectrumSysGui(config, self, plugins)
         try:
             self.gui_object.main()

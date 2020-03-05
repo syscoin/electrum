@@ -7,11 +7,11 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMenu, QHBoxLayout, QLabel, QVBoxLayout, QGridLayout, QLineEdit
 
-from electrumsys.util import inv_dict, bh2u, bfh
-from electrumsys.i18n import _
-from electrumsys.lnchannel import Channel
-from electrumsys.wallet import Abstract_Wallet
-from electrumsys.lnutil import LOCAL, REMOTE, ConnStringFormatError, format_short_channel_id
+from electrum.util import inv_dict, bh2u, bfh
+from electrum.i18n import _
+from electrum.lnchannel import Channel
+from electrum.wallet import Abstract_Wallet
+from electrum.lnutil import LOCAL, REMOTE, ConnStringFormatError, format_short_channel_id
 
 from .util import MyTreeView, WindowModalDialog, Buttons, OkButton, CancelButton, EnterButton, WWLabel, WaitingDialog
 from .amountedit import BTCAmountEdit

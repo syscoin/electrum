@@ -6,22 +6,22 @@ from contextlib import contextmanager
 from collections import defaultdict
 import logging
 
-from electrumsys.network import Network
-from electrumsys.ecc import ECPrivkey
-from electrumsys import simple_config, lnutil
-from electrumsys.lnaddr import lnencode, LnAddr, lndecode
-from electrumsys.bitcoin import COIN, sha256
-from electrumsys.util import bh2u, create_and_start_event_loop
-from electrumsys.lnpeer import Peer
-from electrumsys.lnutil import LNPeerAddr, Keypair, privkey_to_pubkey
-from electrumsys.lnutil import LightningPeerConnectionClosed, RemoteMisbehaving
-from electrumsys.lnutil import PaymentFailure, LnLocalFeatures
-from electrumsys.lnrouter import LNPathFinder
-from electrumsys.channel_db import ChannelDB
-from electrumsys.lnworker import LNWallet, NoPathFound
-from electrumsys.lnmsg import encode_msg, decode_msg
-from electrumsys.logging import console_stderr_handler
-from electrumsys.lnworker import PaymentInfo, RECEIVED, PR_UNPAID
+from electrum.network import Network
+from electrum.ecc import ECPrivkey
+from electrum import simple_config, lnutil
+from electrum.lnaddr import lnencode, LnAddr, lndecode
+from electrum.bitcoin import COIN, sha256
+from electrum.util import bh2u, create_and_start_event_loop
+from electrum.lnpeer import Peer
+from electrum.lnutil import LNPeerAddr, Keypair, privkey_to_pubkey
+from electrum.lnutil import LightningPeerConnectionClosed, RemoteMisbehaving
+from electrum.lnutil import PaymentFailure, LnLocalFeatures
+from electrum.lnrouter import LNPathFinder
+from electrum.channel_db import ChannelDB
+from electrum.lnworker import LNWallet, NoPathFound
+from electrum.lnmsg import encode_msg, decode_msg
+from electrum.logging import console_stderr_handler
+from electrum.lnworker import PaymentInfo, RECEIVED, PR_UNPAID
 
 from .test_lnchannel import create_test_channels
 from . import ElectrumSysTestCase
@@ -43,7 +43,7 @@ class MockNetwork:
         self.lnwatcher = None
         self.interface = None
         user_config = {}
-        user_dir = tempfile.mkdtemp(prefix="electrumsys-lnpeer-test-")
+        user_dir = tempfile.mkdtemp(prefix="electrum-lnpeer-test-")
         self.config = simple_config.SimpleConfig(user_config, read_user_dir_function=lambda: user_dir)
         self.asyncio_loop = asyncio.get_event_loop()
         self.channel_db = ChannelDB(self)

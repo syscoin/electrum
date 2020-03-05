@@ -20,7 +20,7 @@ folder.
 2. Build image
 
     ```
-    $ sudo docker build -t electrumsys-wine-builder-img contrib/build-wine
+    $ sudo docker build -t electrum-wine-builder-img contrib/build-wine
     ```
 
     Note: see [this](https://stackoverflow.com/a/40516974/7499128) if having dns problems
@@ -43,11 +43,11 @@ folder.
     ```
     $ git checkout $REV
     $ sudo docker run -it \
-        --name electrumsys-wine-builder-cont \
-        -v $PWD:/opt/wine64/drive_c/electrumsys \
+        --name electrum-wine-builder-cont \
+        -v $PWD:/opt/wine64/drive_c/electrum \
         --rm \
-        --workdir /opt/wine64/drive_c/electrumsys/contrib/build-wine \
-        electrumsys-wine-builder-img \
+        --workdir /opt/wine64/drive_c/electrum/contrib/build-wine \
+        electrum-wine-builder-img \
         ./build.sh
     ```
 4. The generated binaries are in `./contrib/build-wine/dist`.
@@ -57,10 +57,10 @@ folder.
 Code Signing
 ============
 
-ElectrumSys Windows builds are signed with a Microsoft Authenticode™ code signing
+Electrum Windows builds are signed with a Microsoft Authenticode™ code signing
 certificate in addition to the GPG-based signatures.
 
-The advantage of using Authenticode is that ElectrumSys users won't receive a 
+The advantage of using Authenticode is that Electrum users won't receive a 
 Windows SmartScreen warning when starting it.
 
 The release signing procedure involves a signer (the holder of the

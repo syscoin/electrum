@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -39,10 +39,10 @@ from PyQt5.QtWidgets import (QMessageBox, QComboBox, QSystemTrayIcon, QTabWidget
                              QShortcut, QMainWindow, QCompleter, QInputDialog,
                              QWidget, QMenu, QSizePolicy, QStatusBar)
 
-import electrumsys
-from electrumsys.i18n import _
-from electrumsys import util, coinchooser, paymentrequest
-from electrumsys.util import (format_time, format_satoshis, format_fee_satoshis,
+import electrum
+from electrum.i18n import _
+from electrum import util, coinchooser, paymentrequest
+from electrum.util import (format_time, format_satoshis, format_fee_satoshis,
                            format_satoshis_plain, NotEnoughFunds,
                            UserCancelled, NoDynamicFeeEstimates, profiler,
                            export_meta, import_meta, bh2u, bfh, InvalidPassword,
@@ -60,8 +60,8 @@ from .util import (read_QIcon, ColorScheme, text_dialog, icon_path, WaitingDialo
                    ButtonsLineEdit, CopyCloseButton, import_meta_gui, export_meta_gui,
                    filename_field, address_field, char_width_in_lineedit, webopen)
 
-from electrumsys.i18n import languages
-from electrumsys import qrscanner
+from electrum.i18n import languages
+from electrum import qrscanner
 
 class SettingsDialog(WindowModalDialog):
 
@@ -172,7 +172,7 @@ class SettingsDialog(WindowModalDialog):
 
         # lightning
         lightning_widgets = []
-        help_persist = _("""If this option is checked, ElectrumSys will persist as a daemon after
+        help_persist = _("""If this option is checked, Electrum will persist as a daemon after
 you close all your wallet windows. Your local watchtower will keep
 running, and it will protect your channels even if your wallet is not
 open. For this to work, your computer needs to be online regularly.""")
@@ -253,7 +253,7 @@ open. For this to work, your computer needs to be online regularly.""")
         self.payserver_port_e.setEnabled(self.config.get('run_payserver', False))
         services_widgets.append((payserver_cb, self.payserver_port_e))
 
-        help_local_wt = _("""To setup a local watchtower, you must run ElectrumSys on a machine
+        help_local_wt = _("""To setup a local watchtower, you must run Electrum on a machine
         that is always connected to the internet. Configure a port if you want it to be public.""")
         local_wt_cb = QCheckBox(_("Run Watchtower"))
         local_wt_cb.setToolTip(help_local_wt)

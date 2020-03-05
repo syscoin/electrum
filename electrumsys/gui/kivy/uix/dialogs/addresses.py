@@ -5,7 +5,7 @@ from kivy.lang import Builder
 from decimal import Decimal
 from kivy.uix.popup import Popup
 
-from electrumsys.gui.kivy.i18n import _
+from electrum.gui.kivy.i18n import _
 
 Builder.load_string('''
 <AddressLabel@Label>

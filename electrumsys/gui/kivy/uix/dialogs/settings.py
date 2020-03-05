@@ -3,21 +3,21 @@ from kivy.factory import Factory
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
 
-from electrumsys.util import base_units_list
-from electrumsys.i18n import languages
-from electrumsys.gui.kivy.i18n import _
-from electrumsys.plugin import run_hook
-from electrumsys import coinchooser
+from electrum.util import base_units_list
+from electrum.i18n import languages
+from electrum.gui.kivy.i18n import _
+from electrum.plugin import run_hook
+from electrum import coinchooser
 
 from .choice_dialog import ChoiceDialog
 
 Builder.load_string('''
 #:import partial functools.partial
-#:import _ electrumsys.gui.kivy.i18n._
+#:import _ electrum.gui.kivy.i18n._
 
 <SettingsDialog@Popup>
     id: settings
-    title: _('ElectrumSys Settings')
+    title: _('Electrum Settings')
     disable_pin: False
     use_encryption: False
     BoxLayout:
@@ -178,7 +178,7 @@ class SettingsDialog(Factory.Popup):
                 net_params = net_params._replace(proxy=proxy)
                 network.run_from_another_thread(network.set_parameters(net_params))
                 item.status = self.proxy_status()
-            popup = Builder.load_file('electrumsys/gui/kivy/uix/ui_screens/proxy.kv')
+            popup = Builder.load_file('electrum/gui/kivy/uix/ui_screens/proxy.kv')
             popup.ids.mode.text = proxy.get('mode') if proxy else 'None'
             popup.ids.host.text = proxy.get('host') if proxy else ''
             popup.ids.port.text = proxy.get('port') if proxy else ''

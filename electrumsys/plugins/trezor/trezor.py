@@ -2,16 +2,16 @@ import traceback
 import sys
 from typing import NamedTuple, Any
 
-from electrumsys.util import bfh, bh2u, versiontuple, UserCancelled, UserFacingException
-from electrumsys.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
-from electrumsys.bip32 import BIP32Node, convert_bip32_path_to_list_of_uint32 as parse_path
-from electrumsys import constants
-from electrumsys.i18n import _
-from electrumsys.plugin import Device
-from electrumsys.transaction import deserialize, Transaction
-from electrumsys.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
-from electrumsys.base_wizard import ScriptTypeNotSupported, HWD_SETUP_NEW_WALLET
-from electrumsys.logging import get_logger
+from electrum.util import bfh, bh2u, versiontuple, UserCancelled, UserFacingException
+from electrum.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
+from electrum.bip32 import BIP32Node, convert_bip32_path_to_list_of_uint32 as parse_path
+from electrum import constants
+from electrum.i18n import _
+from electrum.plugin import Device
+from electrum.transaction import deserialize, Transaction
+from electrum.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrum.base_wizard import ScriptTypeNotSupported, HWD_SETUP_NEW_WALLET
+from electrum.logging import get_logger
 
 from ..hw_wallet import HW_PluginBase
 from ..hw_wallet.plugin import (is_any_tx_output_on_change_branch, trezor_validate_op_return_output_and_get_data,
@@ -139,7 +139,7 @@ class TrezorPlugin(HW_PluginBase):
 
     def enumerate(self):
         # If there is a bridge, prefer that.
-        # On Windows, the bridge runs as Admin (and ElectrumSys usually does not),
+        # On Windows, the bridge runs as Admin (and Electrum usually does not),
         # so the bridge has better chances of finding devices. see #5420
         # This also avoids duplicate entries.
         try:

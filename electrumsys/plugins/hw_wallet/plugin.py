@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
 # -*- mode: python -*-
 #
-# ElectrumSys - lightweight Bitcoin client
-# Copyright (C) 2016  The ElectrumSys developers
+# Electrum - lightweight Bitcoin client
+# Copyright (C) 2016  The Electrum developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -24,11 +24,11 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from electrumsys.plugin import BasePlugin, hook
-from electrumsys.i18n import _
-from electrumsys.bitcoin import is_address, TYPE_SCRIPT, opcodes
-from electrumsys.util import bfh, versiontuple, UserFacingException
-from electrumsys.transaction import TxOutput, Transaction
+from electrum.plugin import BasePlugin, hook
+from electrum.i18n import _
+from electrum.bitcoin import is_address, TYPE_SCRIPT, opcodes
+from electrum.util import bfh, versiontuple, UserFacingException
+from electrum.transaction import TxOutput, Transaction
 
 
 class HW_PluginBase(BasePlugin):

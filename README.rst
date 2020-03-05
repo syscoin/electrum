@@ -1,4 +1,4 @@
-ElectrumSys - Lightweight Bitcoin client
+Electrum - Lightweight Bitcoin client
 =====================================
 
 ::
@@ -17,7 +17,7 @@ ElectrumSys - Lightweight Bitcoin client
     :alt: Test coverage statistics
 .. image:: https://d322cqt584bo4o.cloudfront.net/electrum/localized.svg
     :target: https://crowdin.com/project/electrum
-    :alt: Help translate ElectrumSys online
+    :alt: Help translate Electrum online
 
 
 
@@ -26,30 +26,30 @@ ElectrumSys - Lightweight Bitcoin client
 Getting started
 ===============
 
-ElectrumSys is a pure python application. If you want to use the
+Electrum is a pure python application. If you want to use the
 Qt interface, install the Qt dependencies::
 
     sudo apt-get install python3-pyqt5
 
 If you downloaded the official package (tar.gz), you can run
-ElectrumSys from its root directory without installing it on your
+Electrum from its root directory without installing it on your
 system; all the python dependencies are included in the 'packages'
-directory. To run ElectrumSys from its root directory, just do::
+directory. To run Electrum from its root directory, just do::
 
     ./run_electrumsys
 
-You can also install ElectrumSys on your system, by running this command::
+You can also install Electrum on your system, by running this command::
 
     sudo apt-get install python3-setuptools
     python3 -m pip install .[fast]
 
 This will download and install the Python dependencies used by
-ElectrumSys instead of using the 'packages' directory.
+Electrum instead of using the 'packages' directory.
 The 'fast' extra contains some optional dependencies that we think
 are often useful but they are not strictly needed.
 
 If you cloned the git repository, you need to compile extra files
-before you can run ElectrumSys. Read the next section, "Development
+before you can run Electrum. Read the next section, "Development
 Version".
 
 
@@ -71,7 +71,7 @@ Run install (this should install dependencies)::
 Compile the protobuf description file::
 
     sudo apt-get install protobuf-compiler
-    protoc --proto_path=electrumsys --python_out=electrumsys electrumsys/paymentrequest.proto
+    protoc --proto_path=electrum --python_out=electrum electrum/paymentrequest.proto
 
 Create translations (optional)::
 
@@ -111,4 +111,4 @@ See :code:`contrib/build-wine/README.md`.
 Android
 -------
 
-See :code:`electrumsys/gui/kivy/Readme.md`.
+See :code:`electrum/gui/kivy/Readme.md`.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -29,12 +29,12 @@ from typing import NamedTuple, Sequence
 
 from PyQt5.QtGui import QFontMetrics
 
-from electrumsys import bitcoin
-from electrumsys.util import bfh
-from electrumsys.transaction import TxOutput, push_script
-from electrumsys.bitcoin import opcodes
-from electrumsys.logging import Logger
-from electrumsys.lnaddr import LnDecodeException
+from electrum import bitcoin
+from electrum.util import bfh
+from electrum.transaction import TxOutput, push_script
+from electrum.bitcoin import opcodes
+from electrum.logging import Logger
+from electrum.lnaddr import LnDecodeException
 
 from .qrtextedit import ScanQRTextEdit
 from .completion_text_edit import CompletionTextEdit

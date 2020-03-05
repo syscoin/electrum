@@ -1,4 +1,4 @@
-from electrumsys.i18n import _
+from electrum.i18n import _
 
 fullname = _('Two Factor Authentication')
 description = ''.join([

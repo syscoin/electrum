@@ -1,4 +1,4 @@
-# Copyright (C) 2018 The ElectrumSys developers
+# Copyright (C) 2018 The Electrum developers
 # Copyright (C) 2015-2018 The Lightning Network Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy

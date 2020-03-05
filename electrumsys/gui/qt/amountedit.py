@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QLineEdit, QStyle, QStyleOptionFrame)
 
 from .util import char_width_in_lineedit
 
-from electrumsys.util import (format_satoshis_plain, decimal_point_to_base_unit_name, decimal_point_to_base_asset_unit_name,
+from electrum.util import (format_satoshis_plain, decimal_point_to_base_unit_name, decimal_point_to_base_asset_unit_name,
                            FEERATE_PRECISION, quantize_feerate)
 
 

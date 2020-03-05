@@ -4,9 +4,9 @@ from kivy.lang import Builder
 from kivy.factory import Factory
 from kivy.uix.popup import Popup
 from kivy.clock import Clock
-from electrumsys.util import bh2u
-from electrumsys.lnutil import LOCAL, REMOTE, format_short_channel_id
-from electrumsys.gui.kivy.i18n import _
+from electrum.util import bh2u
+from electrum.lnutil import LOCAL, REMOTE, format_short_channel_id
+from electrum.gui.kivy.i18n import _
 from .question import Question
 
 Builder.load_string(r'''

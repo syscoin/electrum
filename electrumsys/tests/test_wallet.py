@@ -7,15 +7,15 @@ from decimal import Decimal
 import time
 
 from io import StringIO
-from electrumsys.storage import WalletStorage
-from electrumsys.json_db import FINAL_SEED_VERSION
-from electrumsys.wallet import (Abstract_Wallet, Standard_Wallet, create_new_wallet,
+from electrum.storage import WalletStorage
+from electrum.json_db import FINAL_SEED_VERSION
+from electrum.wallet import (Abstract_Wallet, Standard_Wallet, create_new_wallet,
                              restore_wallet_from_text, Imported_Wallet)
-from electrumsys.exchange_rate import ExchangeBase, FxThread
-from electrumsys.util import TxMinedInfo
-from electrumsys.bitcoin import COIN
-from electrumsys.json_db import JsonDB
-from electrumsys.simple_config import SimpleConfig
+from electrum.exchange_rate import ExchangeBase, FxThread
+from electrum.util import TxMinedInfo
+from electrum.bitcoin import COIN
+from electrum.json_db import JsonDB
+from electrum.simple_config import SimpleConfig
 
 from . import ElectrumSysTestCase
 

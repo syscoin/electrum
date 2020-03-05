@@ -3,7 +3,7 @@ import threading
 import tempfile
 import shutil
 
-from electrumsys import constants
+from electrum import constants
 
 
 # Set this locally to make the test suite run faster.

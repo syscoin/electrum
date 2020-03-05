@@ -4,9 +4,9 @@ from kivy.core.clipboard import Clipboard
 from kivy.app import App
 from kivy.clock import Clock
 
-from electrumsys.gui.kivy.i18n import _
-from electrumsys.util import pr_tooltips, pr_color
-from electrumsys.util import PR_UNKNOWN
+from electrum.gui.kivy.i18n import _
+from electrum.util import pr_tooltips, pr_color
+from electrum.util import PR_UNKNOWN
 
 
 Builder.load_string('''
@@ -48,12 +48,12 @@ Builder.load_string('''
                     text: _('Delete')
                     on_release: root.delete_dialog()
                 IconButton:
-                    icon: 'atlas://electrumsys/gui/kivy/theming/light/copy'
+                    icon: 'atlas://electrum/gui/kivy/theming/light/copy'
                     size_hint: 0.5, None
                     height: '48dp'
                     on_release: root.copy_to_clipboard()
                 IconButton:
-                    icon: 'atlas://electrumsys/gui/kivy/theming/light/share'
+                    icon: 'atlas://electrum/gui/kivy/theming/light/share'
                     size_hint: 0.5, None
                     height: '48dp'
                     on_release: root.do_share()

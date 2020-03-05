@@ -1,5 +1,5 @@
-from electrumsys.util import print_stderr, raw_input
-from electrumsys.logging import get_logger
+from electrum.util import print_stderr, raw_input
+from electrum.logging import get_logger
 
 
 _logger = get_logger(__name__)

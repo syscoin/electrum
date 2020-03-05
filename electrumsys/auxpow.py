@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-# ElectrumSys-NMC - lightweight Namecoin client
+# Electrum-NMC - lightweight Namecoin client
 # Copyright (C) 2018 The Namecoin developers
 #
-# License for all components not part of ElectrumSys-DOGE:
+# License for all components not part of Electrum-DOGE:
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -25,10 +25,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-# Based on ElectrumSys-DOGE - lightweight Dogecoin client
-# Copyright (C) 2014 The ElectrumSys-DOGE contributors
+# Based on Electrum-DOGE - lightweight Dogecoin client
+# Copyright (C) 2014 The Electrum-DOGE contributors
 #
-# License for the ElectrumSys-DOGE components:
+# License for the Electrum-DOGE components:
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -133,7 +133,7 @@ def deserialize_auxpow_header(base_header, s, start_position=0) -> (dict, int):
 
     return auxpow_header, start_position
 
-# Copied from merkle_branch_from_string in https://github.com/electrumsysalt/electrumsys-doge/blob/f74312822a14f59aa8d50186baff74cade449ccd/lib/blockchain.py#L622
+# Copied from merkle_branch_from_string in https://github.com/electrumsysalt/electrum-doge/blob/f74312822a14f59aa8d50186baff74cade449ccd/lib/blockchain.py#L622
 # Returns list of hashes, merkle index, and position of trailing data in s
 # TODO: Audit this function carefully.
 def deserialize_merkle_branch(s, start_position=0):
@@ -156,7 +156,7 @@ def hash_parent_header(header):
 
     return blockchain.hash_header(header['auxpow']['parent_header'])
 
-# Reimplementation of btcutils.check_merkle_branch from ElectrumSys-DOGE.
+# Reimplementation of btcutils.check_merkle_branch from Electrum-DOGE.
 # btcutils seems to have an unclear license and no obvious Git repo, so it
 # seemed wiser to re-implement.
 # This re-implementation is roughly based on libdohj's calculateMerkleRoot.
@@ -174,7 +174,7 @@ def calculate_merkle_root(leaf, merkle_branch, index):
 
     return hash_encode(target)
 
-# Copied from ElectrumSys-DOGE
+# Copied from Electrum-DOGE
 # TODO: Audit this function carefully.
 # https://github.com/kR105/i0coin/compare/bitcoin:master...master#diff-610df86e65fce009eb271c2a4f7394ccR262
 def calc_merkle_index(chain_id, nonce, merkle_size):
@@ -184,7 +184,7 @@ def calc_merkle_index(chain_id, nonce, merkle_size):
     rand = (rand * 1103515245 + 12345) & 0xffffffff
     return rand % merkle_size
 
-# Copied from ElectrumSys-DOGE
+# Copied from Electrum-DOGE
 # TODO: Audit this function carefully.
 def verify_auxpow(header):
     auxhash = blockchain.hash_header(header)

@@ -1,10 +1,10 @@
 from kivy.lang import Builder
 from kivy.factory import Factory
-from electrumsys.gui.kivy.i18n import _
-from electrumsys.lnaddr import lndecode
-from electrumsys.util import bh2u
-from electrumsys.bitcoin import COIN
-import electrumsys.simple_config as config
+from electrum.gui.kivy.i18n import _
+from electrum.lnaddr import lndecode
+from electrum.util import bh2u
+from electrum.bitcoin import COIN
+import electrum.simple_config as config
 from .label_dialog import LabelDialog
 
 Builder.load_string('''
@@ -27,7 +27,7 @@ Builder.load_string('''
                 size_hint: 1, None
                 height: blue_bottom.item_height
                 Image:
-                    source: 'atlas://electrumsys/gui/kivy/theming/light/globe'
+                    source: 'atlas://electrum/gui/kivy/theming/light/globe'
                     size_hint: None, None
                     size: '22dp', '22dp'
                     pos_hint: {'center_y': .5}
@@ -40,7 +40,7 @@ Builder.load_string('''
             #    size_hint: 1, None
             #    height: blue_bottom.item_height
             #    Image:
-            #        source: 'atlas://electrumsys/gui/kivy/theming/light/network'
+            #        source: 'atlas://electrum/gui/kivy/theming/light/network'
             #        size_hint: None, None
             #        size: '22dp', '22dp'
             #        pos_hint: {'center_y': .5}
@@ -53,7 +53,7 @@ Builder.load_string('''
                 size_hint: 1, None
                 height: blue_bottom.item_height
                 Image:
-                    source: 'atlas://electrumsys/gui/kivy/theming/light/calculator'
+                    source: 'atlas://electrum/gui/kivy/theming/light/calculator'
                     size_hint: None, None
                     size: '22dp', '22dp'
                     pos_hint: {'center_y': .5}
@@ -63,12 +63,12 @@ Builder.load_string('''
         BoxLayout:
             size_hint: 1, None
             IconButton:
-                icon: 'atlas://electrumsys/gui/kivy/theming/light/copy'
+                icon: 'atlas://electrum/gui/kivy/theming/light/copy'
                 size_hint: 0.5, None
                 height: '48dp'
                 on_release: s.do_paste()
             IconButton:
-                icon: 'atlas://electrumsys/gui/kivy/theming/light/camera'
+                icon: 'atlas://electrum/gui/kivy/theming/light/camera'
                 size_hint: 0.5, None
                 height: '48dp'
                 on_release: app.scan_qr(on_complete=s.on_qr)

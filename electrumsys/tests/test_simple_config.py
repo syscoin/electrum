@@ -5,7 +5,7 @@ import tempfile
 import shutil
 
 from io import StringIO
-from electrumsys.simple_config import (SimpleConfig, read_user_config)
+from electrum.simple_config import (SimpleConfig, read_user_config)
 
 from . import ElectrumSysTestCase
 
@@ -17,7 +17,7 @@ class Test_SimpleConfig(ElectrumSysTestCase):
         # make sure "read_user_config" and "user_dir" return a temporary directory.
         self.electrumsys_dir = tempfile.mkdtemp()
         # Do the same for the user dir to avoid overwriting the real configuration
-        # for development machines with electrumsys installed :)
+        # for development machines with electrum installed :)
         self.user_dir = tempfile.mkdtemp()
 
         self.options = {"electrumsys_path": self.electrumsys_dir}

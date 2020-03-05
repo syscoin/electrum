@@ -2,7 +2,7 @@
 
 Revealer
 Do you have something to hide?
-Secret backup plug-in for the electrumsys wallet.
+Secret backup plug-in for the electrum wallet.
 
 Tiago Romagnani Silveira, 2017
 
@@ -24,13 +24,13 @@ from PyQt5.QtGui import (QPixmap, QImage, QBitmap, QPainter, QFontDatabase, QPen
 from PyQt5.QtWidgets import (QGridLayout, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QLineEdit)
 
-from electrumsys.plugin import hook
-from electrumsys.i18n import _
-from electrumsys.util import make_dir, InvalidPassword, UserCancelled
-from electrumsys.gui.qt.util import (read_QIcon, EnterButton, WWLabel, icon_path,
+from electrum.plugin import hook
+from electrum.i18n import _
+from electrum.util import make_dir, InvalidPassword, UserCancelled
+from electrum.gui.qt.util import (read_QIcon, EnterButton, WWLabel, icon_path,
                                   WindowModalDialog, Buttons, CloseButton, OkButton)
-from electrumsys.gui.qt.qrtextedit import ScanQRTextEdit
-from electrumsys.gui.qt.main_window import StatusBarButton
+from electrum.gui.qt.qrtextedit import ScanQRTextEdit
+from electrum.gui.qt.main_window import StatusBarButton
 
 from .revealer import RevealerPlugin
 
@@ -73,7 +73,7 @@ class Plugin(RevealerPlugin):
         return EnterButton(_('Printer Calibration'), partial(self.calibration_dialog, window))
 
     def password_dialog(self, msg=None, parent=None):
-        from electrumsys.gui.qt.password_dialog import PasswordDialog
+        from electrum.gui.qt.password_dialog import PasswordDialog
         parent = parent or self
         d = PasswordDialog(parent, msg)
         return d.run()

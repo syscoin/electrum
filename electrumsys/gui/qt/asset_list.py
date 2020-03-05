@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -22,10 +22,10 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from electrumsys.i18n import _
-from electrumsys.plugin import run_hook
-from electrumsys.bitcoin import is_address
-from electrumsys.wallet import InternalAddressCorruption
+from electrum.i18n import _
+from electrum.plugin import run_hook
+from electrum.bitcoin import is_address
+from electrum.wallet import InternalAddressCorruption
 from .util import *
 from enum import IntEnum
 

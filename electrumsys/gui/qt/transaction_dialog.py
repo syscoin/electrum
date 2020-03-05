@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -37,13 +37,13 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QPushButton, QHBoxLayout, QVBoxLay
 import qrcode
 from qrcode import exceptions
 
-from electrumsys.bitcoin import base_encode
-from electrumsys.i18n import _
-from electrumsys.plugin import run_hook
-from electrumsys import simple_config
-from electrumsys.util import bfh
-from electrumsys.transaction import SerializationError, Transaction
-from electrumsys.logging import get_logger
+from electrum.bitcoin import base_encode
+from electrum.i18n import _
+from electrum.plugin import run_hook
+from electrum import simple_config
+from electrum.util import bfh
+from electrum.transaction import SerializationError, Transaction
+from electrum.logging import get_logger
 
 from .util import (MessageBoxMixin, read_QIcon, Buttons, CopyButton,
                    MONOSPACE_FONT, ColorScheme, ButtonsLineEdit)
@@ -65,7 +65,7 @@ def show_transaction(tx, parent, *, invoice=None, desc=None, prompt_if_unsaved=F
         d = TxDialog(tx, parent, invoice, desc, prompt_if_unsaved)
     except SerializationError as e:
         _logger.exception('unable to deserialize the transaction')
-        parent.show_critical(_("ElectrumSys was unable to deserialize the transaction:") + "\n" + str(e))
+        parent.show_critical(_("Electrum was unable to deserialize the transaction:") + "\n" + str(e))
     else:
         dialogs.append(d)
         d.show()

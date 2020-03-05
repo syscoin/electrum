@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# ElectrumSys - lightweight Bitcoin client
+# Electrum - lightweight Bitcoin client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -42,9 +42,9 @@ kivy.require('1.8.0')
 from kivy.logger import Logger
 
 if TYPE_CHECKING:
-    from electrumsys.simple_config import SimpleConfig
-    from electrumsys.daemon import Daemon
-    from electrumsys.plugin import Plugins
+    from electrum.simple_config import SimpleConfig
+    from electrum.daemon import Daemon
+    from electrum.plugin import Plugins
 
 
 

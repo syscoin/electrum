@@ -1,4 +1,4 @@
-# Copyright (C) 2018 The ElectrumSys developers
+# Copyright (C) 2018 The Electrum developers
 # Copyright (C) 2015-2018 The Lightning Network Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,15 +25,15 @@ import binascii
 from pprint import pformat
 import logging
 
-from electrumsys import bitcoin
-from electrumsys import lnpeer
-from electrumsys import lnchannel
-from electrumsys import lnutil
-from electrumsys import bip32 as bip32_utils
-from electrumsys.lnutil import SENT, LOCAL, REMOTE, RECEIVED
-from electrumsys.lnutil import FeeUpdate
-from electrumsys.ecc import sig_string_from_der_sig
-from electrumsys.logging import console_stderr_handler
+from electrum import bitcoin
+from electrum import lnpeer
+from electrum import lnchannel
+from electrum import lnutil
+from electrum import bip32 as bip32_utils
+from electrum.lnutil import SENT, LOCAL, REMOTE, RECEIVED
+from electrum.lnutil import FeeUpdate
+from electrum.ecc import sig_string_from_der_sig
+from electrum.logging import console_stderr_handler
 
 from . import ElectrumSysTestCase
 
@@ -273,7 +273,7 @@ class TestChannel(ElectrumSysTestCase):
         self.assertEqual(bob_channel.included_htlcs(REMOTE, RECEIVED, 0), [])
         self.assertEqual(bob_channel.included_htlcs(REMOTE, RECEIVED, 1), [])
 
-        from electrumsys.lnutil import extract_ctn_from_tx_and_chan
+        from electrum.lnutil import extract_ctn_from_tx_and_chan
         tx0 = str(alice_channel.force_close_tx())
         self.assertEqual(alice_channel.get_oldest_unrevoked_ctn(LOCAL), 0)
         self.assertEqual(extract_ctn_from_tx_and_chan(alice_channel.force_close_tx(), alice_channel), 0)
