@@ -472,7 +472,9 @@ class ReceiveScreen(CScreen):
         amount = self.app.get_amount(amount) if amount else 0
         message = self.screen.message
         if lightning:
-            key = self.app.wallet.lnworker.add_request(amount, message, self.expiry())
+            payment_hash = self.app.wallet.lnworker.add_invoice(amount, message, self.expiry())
+            request, direction, is_paid = self.app.wallet.lnworker.invoices.get(payment_hash.hex())
+            key = payment_hash.hex()
         else:
             addr = self.screen.address or self.app.wallet.get_unused_address()
             if not addr:

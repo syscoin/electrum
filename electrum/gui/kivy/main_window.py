@@ -212,7 +212,7 @@ class ElectrumSysWindow(App):
         self._trigger_update_history()
 
     def on_request_status(self, event, key, status):
-        if key not in self.wallet.receive_requests:
+        if key not in self.wallet.requests:
             return
         self.update_tab('receive')
         if self.request_popup and self.request_popup.key == key:
