@@ -13,7 +13,12 @@ Popup:
                 SettingsItem:
                     value: _("{} connections.").format(app.num_nodes) if app.num_nodes else _("Not connected")
                     title: _("Status") + ': ' + self.value
+<<<<<<< HEAD:electrum/gui/kivy/uix/ui_screens/network.kv
                     description: _("Connections with Electrum servers")
+=======
+                    description: _("Connections with ElectrumSys servers")
+                    action: lambda x: None
+>>>>>>> parent of 96e07a396... fix #5731:electrumsys/gui/kivy/uix/ui_screens/network.kv
 
                 CardSeparator
                 SettingsItem:
@@ -45,6 +50,7 @@ Popup:
                     value: "%d blocks" % app.num_blocks
                     title: _("Blockchain") + ': ' + self.value
                     description: _('Verified block headers')
+                    action: lambda x: x
 
                 CardSeparator
                 SettingsItem:
