@@ -49,7 +49,7 @@ from .util import (MessageBoxMixin, read_QIcon, Buttons, CopyButton,
                    MONOSPACE_FONT, ColorScheme, ButtonsLineEdit)
 
 if TYPE_CHECKING:
-    from .main_window import ElectrumSysWindow
+    from .main_window import ElectrumWindow
 
 
 SAVE_BUTTON_ENABLED_TOOLTIP = _("Save transaction offline")
@@ -73,7 +73,7 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
 
 class TxDialog(QDialog, MessageBoxMixin):
 
-    def __init__(self, tx: Transaction, parent: 'ElectrumSysWindow', desc, prompt_if_unsaved):
+    def __init__(self, tx: Transaction, parent: 'ElectrumWindow', desc, prompt_if_unsaved):
         '''Transactions in the wallet will show their description.
         Pass desc to give a description for txs not yet in the wallet.
         '''

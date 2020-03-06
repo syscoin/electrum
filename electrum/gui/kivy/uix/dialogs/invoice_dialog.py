@@ -11,7 +11,7 @@ from electrum.util import pr_tooltips, pr_color
 from electrum.util import PR_UNKNOWN, PR_UNPAID
 
 if TYPE_CHECKING:
-    from electrum.gui.kivy.main_window import ElectrumSysWindow
+    from electrum.gui.kivy.main_window import ElectrumWindow
 
 
 Builder.load_string('''
@@ -68,7 +68,7 @@ class InvoiceDialog(Factory.Popup):
     def __init__(self, title, data, key):
         self.status = PR_UNKNOWN
         Factory.Popup.__init__(self)
-        self.app = App.get_running_app()  # type: ElectrumSysWindow
+        self.app = App.get_running_app()  # type: ElectrumWindow
         self.title = title
         self.data = data
         self.key = key

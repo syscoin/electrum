@@ -5,14 +5,14 @@ from typing import NamedTuple
 from electrum.lnutil import RECEIVED, LOCAL, REMOTE, SENT, HTLCOwner, Direction
 from electrum.lnhtlc import HTLCManager
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 
 
 class H(NamedTuple):
     owner : str
     htlc_id : int
 
-class TestHTLCManager(ElectrumSysTestCase):
+class TestHTLCManager(ElectrumTestCase):
     def test_adding_htlcs_race(self):
         A = HTLCManager()
         B = HTLCManager()

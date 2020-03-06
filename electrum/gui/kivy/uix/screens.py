@@ -41,7 +41,7 @@ from .dialogs.lightning_open_channel import LightningOpenChannelDialog
 from electrum.gui.kivy.i18n import _
 
 if TYPE_CHECKING:
-    from electrum.gui.kivy.main_window import ElectrumSysWindow
+    from electrum.gui.kivy.main_window import ElectrumWindow
 
 
 class HistoryRecycleView(RecycleView):
@@ -58,7 +58,7 @@ class CScreen(Factory.Screen):
     action_view = ObjectProperty(None)
     loaded = False
     kvname = None
-    app = App.get_running_app()  # type: ElectrumSysWindow
+    app = App.get_running_app()  # type: ElectrumWindow
 
     def _change_action_view(self):
         app = App.get_running_app()

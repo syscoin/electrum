@@ -12,7 +12,7 @@ from electrum.lnaddr import LnAddr, lndecode
 from electrum.bitcoin import COIN
 
 if TYPE_CHECKING:
-    from .main_window import ElectrumSysWindow
+    from .main_window import ElectrumWindow
 
 class HTLCItem(QtGui.QStandardItem):
     def __init__(self, *args, **kwargs):
@@ -96,7 +96,7 @@ class ChannelDetailsDialog(QtWidgets.QDialog):
         funding_tx = self.window.wallet.db.get_transaction(self.chan.funding_outpoint.txid)
         self.window.show_transaction(funding_tx, tx_desc=_('Funding Transaction'))
 
-    def __init__(self, window: 'ElectrumSysWindow', chan_id: bytes):
+    def __init__(self, window: 'ElectrumWindow', chan_id: bytes):
         super().__init__(window)
 
         # initialize instance fields

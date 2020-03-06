@@ -27,7 +27,7 @@ from electrum.util import FileImportFailed, FileExportFailed, make_aiohttp_sessi
 from electrum.util import PR_UNPAID, PR_PAID, PR_EXPIRED, PR_INFLIGHT, PR_UNKNOWN, PR_FAILED
 
 if TYPE_CHECKING:
-    from .main_window import ElectrumSysWindow
+    from .main_window import ElectrumWindow
 
 
 if platform.system() == 'Windows':
@@ -435,7 +435,7 @@ def filename_field(parent, config, defaultname, select_msg):
 
     return vbox, filename_e, b1
 
-class ElectrumSysItemDelegate(QStyledItemDelegate):
+class ElectrumItemDelegate(QStyledItemDelegate):
     def __init__(self, tv):
         super().__init__(tv)
         self.tv = tv
@@ -459,7 +459,7 @@ class ElectrumSysItemDelegate(QStyledItemDelegate):
 
 class MyTreeView(QTreeView):
 
-    def __init__(self, parent: 'ElectrumSysWindow', create_menu, *,
+    def __init__(self, parent: 'ElectrumWindow', create_menu, *,
                  stretch_column=None, editable_columns=None):
         super().__init__(parent)
         self.parent = parent
@@ -477,7 +477,7 @@ class MyTreeView(QTreeView):
         else:
             editable_columns = {}
         self.editable_columns = editable_columns
-        self.setItemDelegate(ElectrumSysItemDelegate(self))
+        self.setItemDelegate(ElectrumItemDelegate(self))
         self.current_filter = ""
 
         self.setRootIsDecorated(False)  # remove left margin
@@ -842,12 +842,12 @@ def export_meta_gui(electrum_window, title, exporter):
 
 
 def get_parent_main_window(widget):
-    """Returns a reference to the ElectrumSysWindow this widget belongs to."""
-    from .main_window import ElectrumSysWindow
+    """Returns a reference to the ElectrumWindow this widget belongs to."""
+    from .main_window import ElectrumWindow
     for _ in range(100):
         if widget is None:
             return None
-        if not isinstance(widget, ElectrumSysWindow):
+        if not isinstance(widget, ElectrumWindow):
             widget = widget.parentWidget()
         else:
             return widget

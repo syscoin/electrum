@@ -17,7 +17,7 @@ from electrum.mnemonic import seed_type
 from electrum.plugins.trustedcoin import trustedcoin
 
 from . import TestCaseForTestnet
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 from .test_bitcoin import needs_test_with_all_ecc_implementations
 
 
@@ -77,7 +77,7 @@ class WalletIntegrityHelper:
         return w
 
 
-class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
+class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()

@@ -7,7 +7,7 @@ from electrum.util import bh2u, bfh
 from electrum.mnemonic import is_new_seed, is_old_seed, seed_type
 from electrum.version import SEED_PREFIX_SW, SEED_PREFIX
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 from .test_wallet_vertical import UNICODE_HORROR, UNICODE_HORROR_HEX
 
 
@@ -95,7 +95,7 @@ SEED_TEST_CASES = {
 }
 
 
-class Test_NewMnemonic(ElectrumSysTestCase):
+class Test_NewMnemonic(ElectrumTestCase):
 
     def test_mnemonic_to_seed_basic(self):
         # note: not a valid electrum seed
@@ -125,7 +125,7 @@ class Test_NewMnemonic(ElectrumSysTestCase):
             self.assertEqual(m.mnemonic_encode(i), seed)
 
 
-class Test_OldMnemonic(ElectrumSysTestCase):
+class Test_OldMnemonic(ElectrumTestCase):
 
     def test(self):
         seed = '8edad31a95e7d59f8837667510d75a4d'
@@ -135,7 +135,7 @@ class Test_OldMnemonic(ElectrumSysTestCase):
         self.assertEqual(old_mnemonic.mn_decode(result), seed)
 
 
-class Test_BIP39Checksum(ElectrumSysTestCase):
+class Test_BIP39Checksum(ElectrumTestCase):
 
     def test(self):
         mnemonic = u'gravity machine north sort system female filter attitude volume fold club stay feature office ecology stable narrow fog'
@@ -144,7 +144,7 @@ class Test_BIP39Checksum(ElectrumSysTestCase):
         self.assertTrue(is_checksum_valid)
 
 
-class Test_seeds(ElectrumSysTestCase):
+class Test_seeds(ElectrumTestCase):
     """ Test old and new seeds. """
 
     mnemonics = {

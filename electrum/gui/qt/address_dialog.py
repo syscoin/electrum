@@ -34,11 +34,11 @@ from .history_list import HistoryList, HistoryModel
 from .qrtextedit import ShowQRTextEdit
 
 if TYPE_CHECKING:
-    from .main_window import ElectrumSysWindow
+    from .main_window import ElectrumWindow
 
 
 class AddressHistoryModel(HistoryModel):
-    def __init__(self, parent: 'ElectrumSysWindow', address):
+    def __init__(self, parent: 'ElectrumWindow', address):
         super().__init__(parent)
         self.address = address
 
@@ -51,7 +51,7 @@ class AddressHistoryModel(HistoryModel):
 
 class AddressDialog(WindowModalDialog):
 
-    def __init__(self, parent: 'ElectrumSysWindow', address: str):
+    def __init__(self, parent: 'ElectrumWindow', address: str):
         WindowModalDialog.__init__(self, parent, _("Address"))
         self.address = address
         self.parent = parent

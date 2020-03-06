@@ -97,7 +97,7 @@ from .update_checker import UpdateCheck, UpdateCheckThread
 from .channels_list import ChannelsList
 
 if TYPE_CHECKING:
-    from . import ElectrumSysGui
+    from . import ElectrumGui
 
 
 LN_NUM_PAYMENT_ATTEMPTS = 10
@@ -122,7 +122,7 @@ class StatusBarButton(QPushButton):
             self.func()
 
 
-class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
+class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
 
     payment_request_ok_signal = pyqtSignal()
     payment_request_error_signal = pyqtSignal()
@@ -133,7 +133,7 @@ class ElectrumSysWindow(QMainWindow, MessageBoxMixin, Logger):
     show_privkeys_signal = pyqtSignal()
     assets_updated_signal = pyqtSignal()
 
-    def __init__(self, gui_object: 'ElectrumSysGui', wallet: Abstract_Wallet):
+    def __init__(self, gui_object: 'ElectrumGui', wallet: Abstract_Wallet):
         QMainWindow.__init__(self)
 
         self.gui_object = gui_object

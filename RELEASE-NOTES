@@ -114,7 +114,7 @@
 
  * Do not expose users to server error messages (#4968)
  * Notify users of new releases. Release announcements must be signed,
-   and they are verified byElectrumSys using a hardcoded Bitcoin address.
+   and they are verified byElectrum using a hardcoded Bitcoin address.
  * Hardware wallet fixes (#4991, #4993, #5006)
  * Display only QR code in QRcode Window
  * Fixed code signing on MacOS

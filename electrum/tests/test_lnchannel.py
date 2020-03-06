@@ -35,7 +35,7 @@ from electrum.lnutil import FeeUpdate
 from electrum.ecc import sig_string_from_der_sig
 from electrum.logging import console_stderr_handler
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 
 
 one_bitcoin_in_msat = bitcoin.COIN * 1000
@@ -163,7 +163,7 @@ def create_test_channels(feerate=6000, local=None, remote=None):
 
     return alice, bob
 
-class TestFee(ElectrumSysTestCase):
+class TestFee(ElectrumTestCase):
     """
     test
     https://github.com/lightningnetwork/lightning-rfc/blob/e0c436bd7a3ed6a028e1cb472908224658a14eca/03-transactions.md#requirements-2
@@ -172,7 +172,7 @@ class TestFee(ElectrumSysTestCase):
         alice_channel, bob_channel = create_test_channels(253, 10000000000, 5000000000)
         self.assertIn(9999817, [x[2] for x in alice_channel.get_latest_commitment(LOCAL).outputs()])
 
-class TestChannel(ElectrumSysTestCase):
+class TestChannel(ElectrumTestCase):
     maxDiff = 999
 
     def assertOutputExistsByValue(self, tx, amt_sat):
@@ -612,7 +612,7 @@ class TestChannel(ElectrumSysTestCase):
         self.assertIn('Not enough local balance', cm.exception.args[0])
 
 
-class TestAvailableToSpend(ElectrumSysTestCase):
+class TestAvailableToSpend(ElectrumTestCase):
     def test_DesyncHTLCs(self):
         alice_channel, bob_channel = create_test_channels()
 
@@ -650,7 +650,7 @@ class TestAvailableToSpend(ElectrumSysTestCase):
         force_state_transition(alice_channel, bob_channel)
         alice_channel.add_htlc(htlc_dict)
 
-class TestChanReserve(ElectrumSysTestCase):
+class TestChanReserve(ElectrumTestCase):
     def setUp(self):
         alice_channel, bob_channel = create_test_channels()
         alice_min_reserve = int(.5 * one_bitcoin_in_msat // 1000)
@@ -783,7 +783,7 @@ class TestChanReserve(ElectrumSysTestCase):
         self.assertEqual(self.alice_channel.available_to_spend(REMOTE), amt2)
         self.assertEqual(self.bob_channel.available_to_spend(LOCAL), amt2)
 
-class TestDust(ElectrumSysTestCase):
+class TestDust(ElectrumTestCase):
     def test_DustLimit(self):
         alice_channel, bob_channel = create_test_channels()
 

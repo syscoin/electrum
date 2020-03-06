@@ -8,10 +8,10 @@ from electrum import storage
 from electrum.wallet import restore_wallet_from_text
 from electrum.simple_config import SimpleConfig
 
-from . import TestCaseForTestnet, ElectrumSysTestCase
+from . import TestCaseForTestnet, ElectrumTestCase
 
 
-class TestCommands(ElectrumSysTestCase):
+class TestCommands(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()

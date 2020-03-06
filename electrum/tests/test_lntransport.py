@@ -4,10 +4,10 @@ from electrum.ecc import ECPrivkey
 from electrum.lnutil import LNPeerAddr
 from electrum.lntransport import LNResponderTransport, LNTransport
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 
 
-class TestLNTransport(ElectrumSysTestCase):
+class TestLNTransport(ElectrumTestCase):
 
     def test_responder(self):
         # local static

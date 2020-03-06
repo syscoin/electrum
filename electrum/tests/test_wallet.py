@@ -17,7 +17,7 @@ from electrum.bitcoin import COIN
 from electrum.json_db import JsonDB
 from electrum.simple_config import SimpleConfig
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 
 
 class FakeSynchronizer(object):
@@ -29,7 +29,7 @@ class FakeSynchronizer(object):
         self.store.append(address)
 
 
-class WalletTestCase(ElectrumSysTestCase):
+class WalletTestCase(ElectrumTestCase):
 
     def setUp(self):
         super(WalletTestCase, self).setUp()
@@ -116,7 +116,7 @@ class FakeWallet:
 txid = 'abc'
 ccy = 'TEST'
 
-class TestFiat(ElectrumSysTestCase):
+class TestFiat(ElectrumTestCase):
     def setUp(self):
         super().setUp()
         self.value_sat = COIN

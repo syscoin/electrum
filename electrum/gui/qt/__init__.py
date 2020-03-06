@@ -52,7 +52,7 @@ from electrum.logging import Logger
 
 from .installwizard import InstallWizard, WalletAlreadyOpenInMemory
 from .util import get_default_language, read_QIcon, ColorScheme, custom_message_box
-from .main_window import ElectrumSysWindow
+from .main_window import ElectrumWindow
 from .network_dialog import NetworkDialog
 from .stylesheet_patcher import patch_qt_stylesheet
 from .lightning_dialog import LightningDialog
@@ -77,7 +77,7 @@ class OpenFileEventFilter(QObject):
         return False
 
 
-class QElectrumSysApplication(QApplication):
+class QElectrumApplication(QApplication):
     new_window_signal = pyqtSignal(str, object)
 
 
@@ -85,7 +85,7 @@ class QNetworkUpdatedSignalObject(QObject):
     network_updated_signal = pyqtSignal(str, object)
 
 
-class ElectrumSysGui(Logger):
+class ElectrumGui(Logger):
 
     @profiler
     def __init__(self, config: 'SimpleConfig', daemon: 'Daemon', plugins: 'Plugins'):
@@ -94,7 +94,7 @@ class ElectrumSysGui(Logger):
         # Uncomment this call to verify objects are being properly
         # GC-ed when windows are closed
         #network.add_jobs([DebugMem([Abstract_Wallet, SPV, Synchronizer,
-        #                            ElectrumSysWindow], interval=5)])
+        #                            ElectrumWindow], interval=5)])
         QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
         if hasattr(QtCore.Qt, "AA_ShareOpenGLContexts"):
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
@@ -106,7 +106,7 @@ class ElectrumSysGui(Logger):
         self.plugins = plugins
         self.windows = []
         self.efilter = OpenFileEventFilter(self.windows)
-        self.app = QElectrumSysApplication(sys.argv)
+        self.app = QElectrumApplication(sys.argv)
         self.app.installEventFilter(self.efilter)
         self.app.setWindowIcon(read_QIcon("electrum.png"))
         # timer
@@ -224,7 +224,7 @@ class ElectrumSysGui(Logger):
         self.network_dialog.show()
 
     def _create_window_for_wallet(self, wallet):
-        w = ElectrumSysWindow(self, wallet)
+        w = ElectrumWindow(self, wallet)
         self.windows.append(w)
         self.build_tray_menu()
         # FIXME: Remove in favour of the load_wallet hook
@@ -234,7 +234,7 @@ class ElectrumSysGui(Logger):
         return w
 
     def count_wizards_in_progress(func):
-        def wrapper(self: 'ElectrumSysGui', *args, **kwargs):
+        def wrapper(self: 'ElectrumGui', *args, **kwargs):
             with self._num_wizards_lock:
                 self._num_wizards_in_progress += 1
             try:
@@ -322,7 +322,7 @@ class ElectrumSysGui(Logger):
         self.daemon.add_wallet(wallet)
         return wallet
 
-    def close_window(self, window: ElectrumSysWindow):
+    def close_window(self, window: ElectrumWindow):
         if window in self.windows:
            self.windows.remove(window)
         self.build_tray_menu()

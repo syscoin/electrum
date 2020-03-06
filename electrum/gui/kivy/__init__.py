@@ -49,18 +49,18 @@ if TYPE_CHECKING:
 
 
 
-class ElectrumSysGui:
+class ElectrumGui:
 
     def __init__(self, config: 'SimpleConfig', daemon: 'Daemon', plugins: 'Plugins'):
-        Logger.debug('ElectrumSysGUI: initialising')
+        Logger.debug('ElectrumGUI: initialising')
         self.daemon = daemon
         self.network = daemon.network
         self.config = config
         self.plugins = plugins
 
     def main(self):
-        from .main_window import ElectrumSysWindow
-        w = ElectrumSysWindow(config=self.config,
+        from .main_window import ElectrumWindow
+        w = ElectrumWindow(config=self.config,
                            network=self.network,
                            plugins = self.plugins,
                            gui_object=self)

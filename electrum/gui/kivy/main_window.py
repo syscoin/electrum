@@ -80,13 +80,13 @@ from .uix.dialogs.lightning_open_channel import LightningOpenChannelDialog
 from .uix.dialogs.lightning_channels import LightningChannelsDialog
 
 if TYPE_CHECKING:
-    from . import ElectrumSysGui
+    from . import ElectrumGui
     from electrum.simple_config import SimpleConfig
     from electrum.wallet import Abstract_Wallet
     from electrum.plugin import Plugins
 
 
-class ElectrumSysWindow(App):
+class ElectrumWindow(App):
 
     electrum_config = ObjectProperty(None)
     language = StringProperty('en')
@@ -339,7 +339,7 @@ class ElectrumSysWindow(App):
             self.update_proxy_str(self.proxy_config)
 
         self.plugins = kwargs.get('plugins', None)  # type: Plugins
-        self.gui_object = kwargs.get('gui_object', None)  # type: ElectrumSysGui
+        self.gui_object = kwargs.get('gui_object', None)  # type: ElectrumGui
         self.daemon = self.gui_object.daemon
         self.fx = self.daemon.fx
         self.use_rbf = config.get('use_rbf', True)

@@ -38,7 +38,7 @@ try:
     requirements_ok = True
 
 
-    class ElectrumSysColdcardDevice(ColdcardDevice):
+    class ElectrumColdcardDevice(ColdcardDevice):
         # avoid use of pycoin for MiTM message signature test
         def mitm_verify(self, sig, expect_xpub):
             # verify a signature (65 bytes) over the session key, using the master bip32 node
@@ -70,14 +70,14 @@ class CKCCClient:
         self._expected_device = None
 
         if is_simulator:
-            self.dev = ElectrumSysColdcardDevice(dev_path, encrypt=True)
+            self.dev = ElectrumColdcardDevice(dev_path, encrypt=True)
         else:
             # open the real HID device
             import hid
             hd = hid.device(path=dev_path)
             hd.open_path(dev_path)
 
-            self.dev = ElectrumSysColdcardDevice(dev=hd, encrypt=True)
+            self.dev = ElectrumColdcardDevice(dev=hd, encrypt=True)
 
         # NOTE: MiTM test is delayed until we have a hint as to what XPUB we
         # should expect. It's also kinda slow.

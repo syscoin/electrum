@@ -54,7 +54,7 @@ def _shorten_name_of_logrecord(record: logging.LogRecord) -> logging.LogRecord:
     record.name = record.name.replace("network.Network", "network", 1)
     record.name = record.name.replace("synchronizer.Synchronizer", "synchronizer", 1)
     record.name = record.name.replace("verifier.SPV", "verifier", 1)
-    record.name = record.name.replace("gui.qt.main_window.ElectrumSysWindow", "gui.qt.main_window", 1)
+    record.name = record.name.replace("gui.qt.main_window.ElectrumWindow", "gui.qt.main_window", 1)
     return record
 
 

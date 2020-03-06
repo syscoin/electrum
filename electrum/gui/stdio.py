@@ -16,7 +16,7 @@ _ = lambda x:x  # i18n
 # written by rofl0r, with some bits stolen from the text gui (ncurses)
 
 
-class ElectrumSysGui:
+class ElectrumGui:
 
     def __init__(self, config, daemon, plugins):
         self.config = config

@@ -476,7 +476,7 @@ class Daemon(Logger):
         if gui_name in ['lite', 'classic']:
             gui_name = 'qt'
         gui = __import__('electrum.gui.' + gui_name, fromlist=['electrum'])
-        self.gui_object = gui.ElectrumSysGui(config, self, plugins)
+        self.gui_object = gui.ElectrumGui(config, self, plugins)
         try:
             self.gui_object.main()
         except BaseException as e:

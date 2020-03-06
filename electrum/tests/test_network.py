@@ -9,7 +9,7 @@ from electrum.interface import Interface
 from electrum.crypto import sha256
 from electrum.util import bh2u
 
-from . import ElectrumSysTestCase
+from . import ElectrumTestCase
 
 
 class MockTaskGroup:
@@ -38,7 +38,7 @@ class MockInterface(Interface):
         assert assert_mode in item['mock'], (assert_mode, item)
         return item
 
-class TestNetwork(ElectrumSysTestCase):
+class TestNetwork(ElectrumTestCase):
 
     @classmethod
     def setUpClass(cls):

@@ -20,7 +20,7 @@ from electrum.logging import console_stderr_handler
 _ = lambda x:x  # i18n
 
 
-class ElectrumSysGui:
+class ElectrumGui:
 
     def __init__(self, config, daemon, plugins):
 
