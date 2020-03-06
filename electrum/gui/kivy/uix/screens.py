@@ -223,8 +223,7 @@ class SendScreen(CScreen):
             self.set_URI(self.payment_request_queued)
             self.payment_request_queued = None
         _list = self.app.wallet.get_invoices()
-        lnworker_logs = self.app.wallet.lnworker.logs if self.app.wallet.lnworker else {}
-        _list = [x for x in _list if x and x.get('status') != PR_PAID or x.get('rhash') in lnworker_logs]
+        _list = [x for x in _list if x and x.get('status') != PR_PAID or x.get('rhash') in self.app.wallet.lnworker.logs]
         payments_container = self.screen.ids.payments_container
         payments_container.data = [self.get_card(item) for item in _list]
 
