@@ -2,7 +2,7 @@ include LICENCE RELEASE-NOTES AUTHORS
 include README.rst
 include electrum.desktop
 include *.py
-include run_electrumsys
+include run_electrum
 include contrib/requirements/requirements.txt
 include contrib/requirements/requirements-hw.txt
 recursive-include packages *.py

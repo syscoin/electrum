@@ -53,7 +53,7 @@ from .mnemonic import Mnemonic
 from .lnutil import SENT, RECEIVED
 from .lnpeer import channel_id_from_funding_tx
 from .plugin import run_hook
-from .version import ELECTRUMSYS_VERSION
+from .version import ELECTRUM_VERSION
 from .simple_config import SimpleConfig
 
 
@@ -175,7 +175,7 @@ class Commands:
             'spv_nodes': len(self.network.get_interfaces()),
             'connected': self.network.is_connected(),
             'auto_connect': net_params.auto_connect,
-            'version': ELECTRUMSYS_VERSION,
+            'version': ELECTRUM_VERSION,
             'default_wallet': self.config.get_wallet_path(),
             'fee_per_kb': self.config.fee_per_kb(),
         }
@@ -455,8 +455,8 @@ class Commands:
     @command('')
     async def version(self):
         """Return the version of Electrum."""
-        from .version import ELECTRUMSYS_VERSION
-        return ELECTRUMSYS_VERSION
+        from .version import ELECTRUM_VERSION
+        return ELECTRUM_VERSION
 
     @command('w')
     async def getmpk(self, wallet: Abstract_Wallet = None):
@@ -1142,8 +1142,8 @@ def add_global_options(parser):
     group = parser.add_argument_group('global options')
     group.add_argument("-v", dest="verbosity", help="Set verbosity (log levels)", default='')
     group.add_argument("-V", dest="verbosity_shortcuts", help="Set verbosity (shortcut-filter list)", default='')
-    group.add_argument("-D", "--dir", dest="electrumsys_path", help="electrum directory")
-    group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrumsys_data' directory")
+    group.add_argument("-D", "--dir", dest="electrum_path", help="electrum directory")
+    group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrum_data' directory")
     group.add_argument("--testnet", action="store_true", dest="testnet", default=False, help="Use Testnet")
     group.add_argument("--regtest", action="store_true", dest="regtest", default=False, help="Use Regtest")
     group.add_argument("--simnet", action="store_true", dest="simnet", default=False, help="Use Simnet")

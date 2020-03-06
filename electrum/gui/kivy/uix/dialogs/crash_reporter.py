@@ -150,7 +150,7 @@ class CrashReporter(BaseCrashReporter, Factory.Popup):
         currentActivity.startActivity(browserIntent)
 
     def show_never(self):
-        self.main_window.electrumsys_config.set_key(BaseCrashReporter.config_key, False)
+        self.main_window.electrum_config.set_key(BaseCrashReporter.config_key, False)
         self.dismiss()
 
     def get_user_description(self):
@@ -173,7 +173,7 @@ class ExceptionHook(base.ExceptionHandler, Logger):
         base.ExceptionHandler.__init__(self)
         Logger.__init__(self)
         self.main_window = main_window
-        if not main_window.electrumsys_config.get(BaseCrashReporter.config_key, default=True):
+        if not main_window.electrum_config.get(BaseCrashReporter.config_key, default=True):
             return
         # For exceptions in Kivy:
         base.ExceptionManager.add_handler(self)

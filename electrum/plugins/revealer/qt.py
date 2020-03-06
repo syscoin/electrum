@@ -41,7 +41,7 @@ class Plugin(RevealerPlugin):
 
     def __init__(self, parent, config, name):
         RevealerPlugin.__init__(self, parent, config, name)
-        self.base_dir = os.path.join(config.electrumsys_path(), 'revealer')
+        self.base_dir = os.path.join(config.electrum_path(), 'revealer')
 
         if self.config.get('calibration_h') is None:
             self.config.set_key('calibration_h', 0)
@@ -557,7 +557,7 @@ class Plugin(RevealerPlugin):
                 painter.drawLine(base_img.width()-(dist_h), 0,  base_img.width()-(dist_h), base_img.height())
 
                 painter.drawImage(((total_distance_h))+11, ((total_distance_h))+11,
-                                  QImage(icon_path('electrumsysb.png')).scaledToWidth(2.1*(total_distance_h), Qt.SmoothTransformation))
+                                  QImage(icon_path('electrumb.png')).scaledToWidth(2.1*(total_distance_h), Qt.SmoothTransformation))
 
                 painter.setPen(QPen(Qt.white, border_thick*8))
                 painter.drawLine(base_img.width()-((total_distance_h))-(border_thick*8)/2-(border_thick/2)-2,

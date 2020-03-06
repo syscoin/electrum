@@ -4,9 +4,9 @@ set -eu
 
 # alice -> bob -> carol
 
-alice="./run_electrumsys --regtest -D /tmp/alice"
-bob="./run_electrumsys --regtest -D /tmp/bob"
-carol="./run_electrumsys --regtest -D /tmp/carol"
+alice="./run_electrum --regtest -D /tmp/alice"
+bob="./run_electrum --regtest -D /tmp/bob"
+carol="./run_electrum --regtest -D /tmp/carol"
 
 syscoin_cli="syscoin-cli -rpcuser=doggman -rpcpassword=donkey -rpcport=18554 -regtest"
 
@@ -18,7 +18,7 @@ function new_blocks()
 function wait_for_balance()
 {
     msg="wait until $1's balance reaches $2"
-    cmd="./run_electrumsys --regtest -D /tmp/$1"
+    cmd="./run_electrum --regtest -D /tmp/$1"
     while balance=$($cmd getbalance | jq '[.confirmed, .unconfirmed] | to_entries | map(select(.value != null).value) | map(tonumber) | add ') && (( $(echo "$balance < $2" | bc -l) )); do
         sleep 1
 	msg="$msg."
@@ -30,7 +30,7 @@ function wait_for_balance()
 function wait_until_channel_open()
 {
     msg="wait until $1 sees channel open"
-    cmd="./run_electrumsys --regtest -D /tmp/$1"
+    cmd="./run_electrum --regtest -D /tmp/$1"
     while channel_state=$($cmd list_channels | jq '.[0] | .state' | tr -d '"') && [ $channel_state != "OPEN" ]; do
         sleep 1
 	msg="$msg."
@@ -42,7 +42,7 @@ function wait_until_channel_open()
 function wait_until_channel_closed()
 {
     msg="wait until $1 sees channel closed"
-    cmd="./run_electrumsys --regtest -D /tmp/$1"
+    cmd="./run_electrum --regtest -D /tmp/$1"
     while [[ $($cmd list_channels | jq '.[0].state' | tr -d '"') != "CLOSED" ]]; do
         sleep 1
 	msg="$msg."
@@ -161,7 +161,7 @@ fi
 
 if [[ $1 == "redeem_htlcs" ]]; then
     $bob stop
-    ELECTRUMSYS_DEBUG_LIGHTNING_SETTLE_DELAY=10 $bob daemon -d
+    ELECTRUM_DEBUG_LIGHTNING_SETTLE_DELAY=10 $bob daemon -d
     sleep 1
     $bob load_wallet
     sleep 1
@@ -207,7 +207,7 @@ fi
 
 if [[ $1 == "breach_with_unspent_htlc" ]]; then
     $bob stop
-    ELECTRUMSYS_DEBUG_LIGHTNING_SETTLE_DELAY=3 $bob daemon -d
+    ELECTRUM_DEBUG_LIGHTNING_SETTLE_DELAY=3 $bob daemon -d
     sleep 1
     $bob load_wallet
     wait_for_balance alice 1
@@ -239,7 +239,7 @@ fi
 
 if [[ $1 == "breach_with_spent_htlc" ]]; then
     $bob stop
-    ELECTRUMSYS_DEBUG_LIGHTNING_SETTLE_DELAY=3 $bob daemon -d
+    ELECTRUM_DEBUG_LIGHTNING_SETTLE_DELAY=3 $bob daemon -d
     sleep 1
     $bob load_wallet
     wait_for_balance alice 1

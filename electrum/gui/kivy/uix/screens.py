@@ -344,7 +344,7 @@ class SendScreen(CScreen):
             return
         elif invoice['type'] == PR_TYPE_ONCHAIN or invoice['type'] == PR_TYPE_ONCHAIN_ASSET:
             do_pay = lambda rbf: self._do_pay_onchain(invoice, rbf)
-            if self.app.electrumsys_config.get('use_rbf') and invoice['type'] == PR_TYPE_ONCHAIN:
+            if self.app.electrum_config.get('use_rbf') and invoice['type'] == PR_TYPE_ONCHAIN:
                 d = Question(_('Should this transaction be replaceable?'), do_pay)
                 d.open()
             else:
@@ -431,7 +431,7 @@ class ReceiveScreen(CScreen):
         Clock.schedule_interval(lambda dt: self.update(), 5)
 
     def expiry(self):
-        return self.app.electrumsys_config.get('request_expiry', 3600) # 1 hour
+        return self.app.electrum_config.get('request_expiry', 3600) # 1 hour
 
     def clear(self):
         self.screen.address = ''
@@ -524,7 +524,7 @@ class ReceiveScreen(CScreen):
     def expiration_dialog(self, obj):
         from .dialogs.choice_dialog import ChoiceDialog
         def callback(c):
-            self.app.electrumsys_config.set_key('request_expiry', c)
+            self.app.electrum_config.set_key('request_expiry', c)
         d = ChoiceDialog(_('Expiration date'), pr_expiration_values, self.expiry(), callback)
         d.open()
 

@@ -237,7 +237,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
     def get_client(self):
         return self.plugin.get_client(self).dongleObject
 
-    def get_client_electrumsys(self):
+    def get_client_electrum(self):
         return self.plugin.get_client(self)
 
     def give_error(self, message, clear_client = False):
@@ -345,12 +345,12 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 p2shTransaction = True
 
             if txin['type'] in ['p2wpkh-p2sh', 'p2wsh-p2sh']:
-                if not self.get_client_electrumsys().supports_segwit():
+                if not self.get_client_electrum().supports_segwit():
                     self.give_error(MSG_NEEDS_FW_UPDATE_SEGWIT)
                 segwitTransaction = True
 
             if txin['type'] in ['p2wpkh', 'p2wsh']:
-                if not self.get_client_electrumsys().supports_native_segwit():
+                if not self.get_client_electrum().supports_native_segwit():
                     self.give_error(MSG_NEEDS_FW_UPDATE_SEGWIT)
                 segwitTransaction = True
 
@@ -398,7 +398,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         # - only one output and one change is authorized (for hw.1 and nano)
         # - at most one output can bypass confirmation (~change) (for all)
         if not p2shTransaction:
-            if not self.get_client_electrumsys().supports_multi_output():
+            if not self.get_client_electrum().supports_multi_output():
                 if len(tx.outputs()) > 2:
                     self.give_error("Transaction with more than 2 outputs not supported")
             has_change = False

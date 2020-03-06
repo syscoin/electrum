@@ -53,7 +53,7 @@ util = False
 
 # register widget cache for keeping memory down timeout to forever to cache
 # the data
-Cache.register('electrumsys_widgets', timeout=0)
+Cache.register('electrum_widgets', timeout=0)
 
 from kivy.uix.screenmanager import Screen
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -88,7 +88,7 @@ if TYPE_CHECKING:
 
 class ElectrumSysWindow(App):
 
-    electrumsys_config = ObjectProperty(None)
+    electrum_config = ObjectProperty(None)
     language = StringProperty('en')
 
     # properties might be updated by the network
@@ -161,7 +161,7 @@ class ElectrumSysWindow(App):
 
     use_rbf = BooleanProperty(False)
     def on_use_rbf(self, instance, x):
-        self.electrumsys_config.set_key('use_rbf', self.use_rbf, True)
+        self.electrum_config.set_key('use_rbf', self.use_rbf, True)
 
     use_change = BooleanProperty(False)
     def on_use_change(self, instance, x):
@@ -172,7 +172,7 @@ class ElectrumSysWindow(App):
 
     use_unconfirmed = BooleanProperty(False)
     def on_use_unconfirmed(self, instance, x):
-        self.electrumsys_config.set_key('confirmed_only', not self.use_unconfirmed, True)
+        self.electrum_config.set_key('confirmed_only', not self.use_unconfirmed, True)
 
     def set_URI(self, uri):
         self.switch_to('send')
@@ -233,7 +233,7 @@ class ElectrumSysWindow(App):
             self.show_info(_('Payment failed'))
 
     def _get_bu(self):
-        decimal_point = self.electrumsys_config.get('decimal_point', DECIMAL_POINT_DEFAULT)
+        decimal_point = self.electrum_config.get('decimal_point', DECIMAL_POINT_DEFAULT)
         try:
             return decimal_point_to_base_unit_name(decimal_point)
         except UnknownBaseUnit:
@@ -242,7 +242,7 @@ class ElectrumSysWindow(App):
     def _set_bu(self, value):
         assert value in base_units.keys()
         decimal_point = base_unit_name_to_decimal_point(value)
-        self.electrumsys_config.set_key('decimal_point', decimal_point, True)
+        self.electrum_config.set_key('decimal_point', decimal_point, True)
         self._trigger_update_status()
         self._trigger_update_history()
 
@@ -329,7 +329,7 @@ class ElectrumSysWindow(App):
 
         App.__init__(self)#, **kwargs)
 
-        self.electrumsys_config = config = kwargs.get('config', None)  # type: SimpleConfig
+        self.electrum_config = config = kwargs.get('config', None)  # type: SimpleConfig
         self.language = config.get('language', 'en')
         self.network = network = kwargs.get('network', None)  # type: Network
         if self.network:
@@ -363,7 +363,7 @@ class ElectrumSysWindow(App):
         self._password_dialog = None
         self._channels_dialog = None
         self._addresses_dialog = None
-        self.fee_status = self.electrumsys_config.get_fee_status()
+        self.fee_status = self.electrum_config.get_fee_status()
         self.request_popup = None
 
     def on_pr(self, pr):
@@ -570,9 +570,9 @@ class ElectrumSysWindow(App):
             self.network.register_callback(self.set_num_peers, ['gossip_peers'])
             self.network.register_callback(self.set_unknown_channels, ['unknown_channels'])
         # load wallet
-        self.load_wallet_by_name(self.electrumsys_config.get_wallet_path(use_gui_last_wallet=True))
+        self.load_wallet_by_name(self.electrum_config.get_wallet_path(use_gui_last_wallet=True))
         # URI passed in config
-        uri = self.electrumsys_config.get('url')
+        uri = self.electrum_config.get('url')
         if uri:
             self.set_URI(uri)
 
@@ -594,14 +594,14 @@ class ElectrumSysWindow(App):
 
     def on_wizard_complete(self, wizard, storage):
         if storage:
-            wallet = Wallet(storage, config=self.electrumsys_config)
+            wallet = Wallet(storage, config=self.electrum_config)
             wallet.start_network(self.daemon.network)
             self.daemon.add_wallet(wallet)
             self.load_wallet(wallet)
         elif not self.wallet:
             # wizard did not return a wallet; and there is no wallet open atm
             # try to open last saved wallet (potentially start wizard again)
-            self.load_wallet_by_name(self.electrumsys_config.get_wallet_path(use_gui_last_wallet=True),
+            self.load_wallet_by_name(self.electrum_config.get_wallet_path(use_gui_last_wallet=True),
                                      ask_if_wizard=True)
 
     def load_wallet_by_name(self, path, ask_if_wizard=False):
@@ -617,7 +617,7 @@ class ElectrumSysWindow(App):
                 self.load_wallet(wallet)
         else:
             def launch_wizard():
-                wizard = Factory.InstallWizard(self.electrumsys_config, self.plugins)
+                wizard = Factory.InstallWizard(self.electrum_config, self.plugins)
                 wizard.path = path
                 wizard.bind(on_wizard_complete=self.on_wizard_complete)
                 storage = WalletStorage(path, manual_upgrades=True)
@@ -645,7 +645,7 @@ class ElectrumSysWindow(App):
     def on_stop(self):
         Logger.info('on_stop')
         if self.wallet:
-            self.electrumsys_config.save_last_wallet(self.wallet)
+            self.electrum_config.save_last_wallet(self.wallet)
         self.stop_wallet()
 
     def stop_wallet(self):
@@ -750,8 +750,8 @@ class ElectrumSysWindow(App):
                          module='electrum.gui.kivy.uix.qrcodewidget')
 
         # preload widgets. Remove this if you want to load the widgets on demand
-        #Cache.append('electrumsys_widgets', 'AnimatedPopup', Factory.AnimatedPopup())
-        #Cache.append('electrumsys_widgets', 'QRCodeWidget', Factory.QRCodeWidget())
+        #Cache.append('electrum_widgets', 'AnimatedPopup', Factory.AnimatedPopup())
+        #Cache.append('electrum_widgets', 'QRCodeWidget', Factory.QRCodeWidget())
 
         # load and focus the ui
         self.root.manager = self.root.ids['manager']
@@ -1082,12 +1082,12 @@ class ElectrumSysWindow(App):
     def fee_dialog(self, label, dt):
         from .uix.dialogs.fee_dialog import FeeDialog
         def cb():
-            self.fee_status = self.electrumsys_config.get_fee_status()
-        fee_dialog = FeeDialog(self, self.electrumsys_config, cb)
+            self.fee_status = self.electrum_config.get_fee_status()
+        fee_dialog = FeeDialog(self, self.electrum_config, cb)
         fee_dialog.open()
 
     def on_fee(self, event, *arg):
-        self.fee_status = self.electrumsys_config.get_fee_status()
+        self.fee_status = self.electrum_config.get_fee_status()
 
     def protected(self, msg, f, args):
         if self.wallet.has_password():
@@ -1150,7 +1150,7 @@ class ElectrumSysWindow(App):
         self.stop_wallet()
         os.unlink(wallet_path)
         self.show_error(_("Wallet removed: {}").format(basename))
-        new_path = self.electrumsys_config.get_wallet_path(use_gui_last_wallet=True)
+        new_path = self.electrum_config.get_wallet_path(use_gui_last_wallet=True)
         self.load_wallet_by_name(new_path)
 
     def show_seed(self, label):

@@ -56,7 +56,7 @@ class SimpleConfig(Logger):
             options = {}
 
         Logger.__init__(self)
-        self.lightning_settle_delay = int(os.environ.get('ELECTRUMSYS_DEBUG_LIGHTNING_SETTLE_DELAY', 0))
+        self.lightning_settle_delay = int(os.environ.get('ELECTRUM_DEBUG_LIGHTNING_SETTLE_DELAY', 0))
 
         # This lock needs to be acquired for updating and reading the config in
         # a thread-safe way.
@@ -82,8 +82,8 @@ class SimpleConfig(Logger):
         self.cmdline_options.pop('config_version', None)
 
         # Set self.path and read the user config
-        self.user_config = {}  # for self.get in electrumsys_path()
-        self.path = self.electrumsys_path()
+        self.user_config = {}  # for self.get in electrum_path()
+        self.path = self.electrum_path()
         self.user_config = read_user_config_function(self.path)
         if not self.user_config:
             # avoid new config getting upgraded
@@ -97,10 +97,10 @@ class SimpleConfig(Logger):
         if self.requires_upgrade():
             self.upgrade()
 
-    def electrumsys_path(self):
-        # Read electrumsys_path from command line
+    def electrum_path(self):
+        # Read electrum_path from command line
         # Otherwise use the user's default data directory.
-        path = self.get('electrumsys_path')
+        path = self.get('electrum_path')
         if path is None:
             path = self.user_dir()
 

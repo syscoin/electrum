@@ -107,7 +107,7 @@ class LightningOpenChannelDialog(Factory.Popup):
     def open(self, *args, **kwargs):
         super(LightningOpenChannelDialog, self).open(*args, **kwargs)
         if self.lnaddr:
-            fee = self.app.electrumsys_config.fee_per_kb()
+            fee = self.app.electrum_config.fee_per_kb()
             if not fee:
                 fee = config.FEERATE_FALLBACK_STATIC_FEE
             self.amount = self.app.format_amount_and_units(self.lnaddr.amount * COIN + fee * 2)

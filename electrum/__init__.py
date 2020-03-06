@@ -1,4 +1,4 @@
-from .version import ELECTRUMSYS_VERSION
+from .version import ELECTRUM_VERSION
 from .util import format_satoshis
 from .wallet import Wallet
 from .storage import WalletStorage
@@ -14,4 +14,4 @@ from .plugin import BasePlugin
 from .commands import Commands, known_commands
 
 
-__version__ = ELECTRUMSYS_VERSION
+__version__ = ELECTRUM_VERSION

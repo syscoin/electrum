@@ -27,7 +27,7 @@ import subprocess
 import sys
 import os
 
-from .version import ELECTRUMSYS_VERSION
+from .version import ELECTRUM_VERSION
 from . import constants
 from .i18n import _
 from .util import make_aiohttp_session
@@ -95,7 +95,7 @@ class BaseCrashReporter(Logger):
 
     def get_additional_info(self):
         args = {
-            "app_version": ELECTRUMSYS_VERSION,
+            "app_version": ELECTRUM_VERSION,
             "python_version": sys.version,
             "os": describe_os_version(),
             "wallet_type": "unknown",

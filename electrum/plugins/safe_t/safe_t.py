@@ -280,27 +280,27 @@ class SafeTPlugin(HW_PluginBase):
         client.used()
         return xpub
 
-    def get_safet_input_script_type(self, electrumsys_txin_type: str):
-        if electrumsys_txin_type in ('p2wpkh', 'p2wsh'):
+    def get_safet_input_script_type(self, electrum_txin_type: str):
+        if electrum_txin_type in ('p2wpkh', 'p2wsh'):
             return self.types.InputScriptType.SPENDWITNESS
-        if electrumsys_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
+        if electrum_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
             return self.types.InputScriptType.SPENDP2SHWITNESS
-        if electrumsys_txin_type in ('p2pkh', ):
+        if electrum_txin_type in ('p2pkh', ):
             return self.types.InputScriptType.SPENDADDRESS
-        if electrumsys_txin_type in ('p2sh', ):
+        if electrum_txin_type in ('p2sh', ):
             return self.types.InputScriptType.SPENDMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrumsys_txin_type))
+        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
 
-    def get_safet_output_script_type(self, electrumsys_txin_type: str):
-        if electrumsys_txin_type in ('p2wpkh', 'p2wsh'):
+    def get_safet_output_script_type(self, electrum_txin_type: str):
+        if electrum_txin_type in ('p2wpkh', 'p2wsh'):
             return self.types.OutputScriptType.PAYTOWITNESS
-        if electrumsys_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
+        if electrum_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
             return self.types.OutputScriptType.PAYTOP2SHWITNESS
-        if electrumsys_txin_type in ('p2pkh', ):
+        if electrum_txin_type in ('p2pkh', ):
             return self.types.OutputScriptType.PAYTOADDRESS
-        if electrumsys_txin_type in ('p2sh', ):
+        if electrum_txin_type in ('p2sh', ):
             return self.types.OutputScriptType.PAYTOMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrumsys_txin_type))
+        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
 
     def sign_transaction(self, keystore, tx, prev_tx, xpub_path):
         self.prev_tx = prev_tx
@@ -466,7 +466,7 @@ class SafeTPlugin(HW_PluginBase):
 
         return outputs
 
-    def electrumsys_tx_to_txtype(self, tx):
+    def electrum_tx_to_txtype(self, tx):
         t = self.types.TransactionType()
         if tx is None:
             # probably for segwit input and we don't need this prev txn
@@ -485,4 +485,4 @@ class SafeTPlugin(HW_PluginBase):
     # This function is called from the TREZOR libraries (via tx_api)
     def get_tx(self, tx_hash):
         tx = self.prev_tx[tx_hash]
-        return self.electrumsys_tx_to_txtype(tx)
+        return self.electrum_tx_to_txtype(tx)

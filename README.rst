@@ -36,7 +36,7 @@ Electrum from its root directory without installing it on your
 system; all the python dependencies are included in the 'packages'
 directory. To run Electrum from its root directory, just do::
 
-    ./run_electrumsys
+    ./run_electrum
 
 You can also install Electrum on your system, by running this command::
 

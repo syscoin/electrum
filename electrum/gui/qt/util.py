@@ -812,32 +812,32 @@ class AcceptFileDragDrop:
         raise NotImplementedError()
 
 
-def import_meta_gui(electrumsys_window, title, importer, on_success):
+def import_meta_gui(electrum_window, title, importer, on_success):
     filter_ = "JSON (*.json);;All files (*)"
-    filename = electrumsys_window.getOpenFileName(_("Open {} file").format(title), filter_)
+    filename = electrum_window.getOpenFileName(_("Open {} file").format(title), filter_)
     if not filename:
         return
     try:
         importer(filename)
     except FileImportFailed as e:
-        electrumsys_window.show_critical(str(e))
+        electrum_window.show_critical(str(e))
     else:
-        electrumsys_window.show_message(_("Your {} were successfully imported").format(title))
+        electrum_window.show_message(_("Your {} were successfully imported").format(title))
         on_success()
 
 
-def export_meta_gui(electrumsys_window, title, exporter):
+def export_meta_gui(electrum_window, title, exporter):
     filter_ = "JSON (*.json);;All files (*)"
-    filename = electrumsys_window.getSaveFileName(_("Select file to save your {}").format(title),
-                                               'electrumsys_{}.json'.format(title), filter_)
+    filename = electrum_window.getSaveFileName(_("Select file to save your {}").format(title),
+                                               'electrum_{}.json'.format(title), filter_)
     if not filename:
         return
     try:
         exporter(filename)
     except FileExportFailed as e:
-        electrumsys_window.show_critical(str(e))
+        electrum_window.show_critical(str(e))
     else:
-        electrumsys_window.show_message(_("Your {0} were exported to '{1}'")
+        electrum_window.show_message(_("Your {0} were exported to '{1}'")
                                      .format(title, str(filename)))
 
 

@@ -59,7 +59,7 @@ extras_require['full'] = [pkg for sublist in list(extras_require.values()) for p
 
 setup(
     name="Electrum",
-    version=version.ELECTRUMSYS_VERSION,
+    version=version.ELECTRUM_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,
     extras_require=extras_require,

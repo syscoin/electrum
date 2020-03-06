@@ -32,11 +32,11 @@ class ElectrumSysTestCase(SequentialTestCase):
 
     def setUp(self):
         super().setUpClass()
-        self.electrumsys_path = tempfile.mkdtemp()
+        self.electrum_path = tempfile.mkdtemp()
 
     def tearDown(self):
         super().tearDownClass()
-        shutil.rmtree(self.electrumsys_path)
+        shutil.rmtree(self.electrum_path)
 
 
 class TestCaseForTestnet(ElectrumSysTestCase):

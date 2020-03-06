@@ -305,30 +305,30 @@ class TrezorPlugin(HW_PluginBase):
         client.used()
         return xpub
 
-    def get_trezor_input_script_type(self, electrumsys_txin_type: str):
-        if electrumsys_txin_type in ('p2wpkh', 'p2wsh'):
+    def get_trezor_input_script_type(self, electrum_txin_type: str):
+        if electrum_txin_type in ('p2wpkh', 'p2wsh'):
             return InputScriptType.SPENDWITNESS
-        if electrumsys_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
+        if electrum_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
             return InputScriptType.SPENDP2SHWITNESS
-        if electrumsys_txin_type in ('p2pkh', ):
+        if electrum_txin_type in ('p2pkh', ):
             return InputScriptType.SPENDADDRESS
-        if electrumsys_txin_type in ('p2sh', ):
+        if electrum_txin_type in ('p2sh', ):
             return InputScriptType.SPENDMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrumsys_txin_type))
+        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
 
-    def get_trezor_output_script_type(self, electrumsys_txin_type: str):
-        if electrumsys_txin_type in ('p2wpkh', 'p2wsh'):
+    def get_trezor_output_script_type(self, electrum_txin_type: str):
+        if electrum_txin_type in ('p2wpkh', 'p2wsh'):
             return OutputScriptType.PAYTOWITNESS
-        if electrumsys_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
+        if electrum_txin_type in ('p2wpkh-p2sh', 'p2wsh-p2sh'):
             return OutputScriptType.PAYTOP2SHWITNESS
-        if electrumsys_txin_type in ('p2pkh', ):
+        if electrum_txin_type in ('p2pkh', ):
             return OutputScriptType.PAYTOADDRESS
-        if electrumsys_txin_type in ('p2sh', ):
+        if electrum_txin_type in ('p2sh', ):
             return OutputScriptType.PAYTOMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrumsys_txin_type))
+        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
 
     def sign_transaction(self, keystore, tx, prev_tx, xpub_path):
-        prev_tx = { bfh(txhash): self.electrumsys_tx_to_txtype(tx, xpub_path) for txhash, tx in prev_tx.items() }
+        prev_tx = { bfh(txhash): self.electrum_tx_to_txtype(tx, xpub_path) for txhash, tx in prev_tx.items() }
         client = self.get_client(keystore)
         inputs = self.tx_inputs(tx, xpub_path, True)
         outputs = self.tx_outputs(keystore.get_derivation(), tx)
@@ -471,7 +471,7 @@ class TrezorPlugin(HW_PluginBase):
 
         return outputs
 
-    def electrumsys_tx_to_txtype(self, tx, xpub_path):
+    def electrum_tx_to_txtype(self, tx, xpub_path):
         t = TransactionType()
         if tx is None:
             # probably for segwit input and we don't need this prev txn

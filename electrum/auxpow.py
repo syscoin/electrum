@@ -133,7 +133,7 @@ def deserialize_auxpow_header(base_header, s, start_position=0) -> (dict, int):
 
     return auxpow_header, start_position
 
-# Copied from merkle_branch_from_string in https://github.com/electrumsysalt/electrum-doge/blob/f74312822a14f59aa8d50186baff74cade449ccd/lib/blockchain.py#L622
+# Copied from merkle_branch_from_string in https://github.com/electrumalt/electrum-doge/blob/f74312822a14f59aa8d50186baff74cade449ccd/lib/blockchain.py#L622
 # Returns list of hashes, merkle index, and position of trailing data in s
 # TODO: Audit this function carefully.
 def deserialize_merkle_branch(s, start_position=0):

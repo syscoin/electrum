@@ -81,11 +81,11 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_standard(self, mock_write):
+    def test_electrum_seed_standard(self, mock_write):
         seed_words = 'cycle rocket west magnet parrot shuffle foot correct salt library feed song'
         self.assertEqual(seed_type(seed_words), 'standard')
 
@@ -105,7 +105,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_segwit(self, mock_write):
+    def test_electrum_seed_segwit(self, mock_write):
         seed_words = 'bitter grass shiver impose acquire brush forget axis eager alone wine silver'
         self.assertEqual(seed_type(seed_words), 'segwit')
 
@@ -125,7 +125,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_segwit_passphrase(self, mock_write):
+    def test_electrum_seed_segwit_passphrase(self, mock_write):
         seed_words = 'bitter grass shiver impose acquire brush forget axis eager alone wine silver'
         self.assertEqual(seed_type(seed_words), 'segwit')
 
@@ -145,7 +145,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_old(self, mock_write):
+    def test_electrum_seed_old(self, mock_write):
         seed_words = 'powerful random nobody notice nothing important anyway look away hidden message over'
         self.assertEqual(seed_type(seed_words), 'old')
 
@@ -164,7 +164,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_2fa_legacy(self, mock_write):
+    def test_electrum_seed_2fa_legacy(self, mock_write):
         seed_words = 'kiss live scene rude gate step hip quarter bunker oxygen motor glove'
         self.assertEqual(seed_type(seed_words), '2fa')
 
@@ -199,7 +199,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_seed_2fa_segwit(self, mock_write):
+    def test_electrum_seed_2fa_segwit(self, mock_write):
         seed_words = 'universe topic remind silver february ranch shine worth innocent cattle enhance wise'
         self.assertEqual(seed_type(seed_words), '2fa_segwit')
 
@@ -311,7 +311,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_multisig_seed_standard(self, mock_write):
+    def test_electrum_multisig_seed_standard(self, mock_write):
         seed_words = 'blast uniform dragon fiscal ensure vast young utility dinosaur abandon rookie sure'
         self.assertEqual(seed_type(seed_words), 'standard')
 
@@ -334,7 +334,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumSysTestCase):
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_electrumsys_multisig_seed_segwit(self, mock_write):
+    def test_electrum_multisig_seed_segwit(self, mock_write):
         seed_words = 'snow nest raise royal more walk demise rotate smooth spirit canyon gun'
         self.assertEqual(seed_type(seed_words), 'segwit')
 
@@ -465,7 +465,7 @@ class TestWalletKeystoreAddressIntegrityForTestnet(TestCaseForTestnet):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     @mock.patch.object(storage.WalletStorage, '_write')
     def test_bip39_multisig_seed_p2sh_segwit_testnet(self, mock_write):
@@ -553,7 +553,7 @@ class TestWalletSending(TestCaseForTestnet):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     def create_standard_wallet_from_seed(self, seed_words):
         ks = keystore.from_seed(seed_words, '', False)
@@ -1375,11 +1375,11 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     @needs_test_with_all_ecc_implementations
     @mock.patch.object(storage.WalletStorage, '_write')
-    def test_sending_offline_old_electrumsys_seed_online_mpk(self, mock_write):
+    def test_sending_offline_old_electrum_seed_online_mpk(self, mock_write):
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
             keystore.from_seed('alone body father children lead goodbye phone twist exist grass kick join', '', False),
             gap_limit=4,
@@ -1984,7 +1984,7 @@ class TestWalletHistory_SimpleRandomOrder(TestCaseForTestnet):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     def create_old_wallet(self):
         ks = keystore.from_old_mpk('e9d4b7866dd1e91c862aebf62a49548c7dbf7bcc6e4b7b8c9da820c7737968df9c09d5a3e271dc814a29981f81b3faaf2737b551ef5dcc6189cf0f8252c442b3')
@@ -2032,7 +2032,7 @@ class TestWalletHistory_EvilGapLimit(TestCaseForTestnet):
     def setUp(self):
         super().setUp()
         self.config = SimpleConfig({
-            'electrumsys_path': self.electrumsys_path,
+            'electrum_path': self.electrum_path,
             'skipmerklecheck': True,  # needed for Synchronizer to generate new addresses without SPV
         })
 
@@ -2088,7 +2088,7 @@ class TestWalletHistory_DoubleSpend(TestCaseForTestnet):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrumsys_path': self.electrumsys_path})
+        self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
     @mock.patch.object(storage.WalletStorage, '_write')
     def test_restoring_wallet_without_manual_delete(self, mock_write):

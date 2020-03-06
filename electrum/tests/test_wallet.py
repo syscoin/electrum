@@ -34,7 +34,7 @@ class WalletTestCase(ElectrumSysTestCase):
     def setUp(self):
         super(WalletTestCase, self).setUp()
         self.user_dir = tempfile.mkdtemp()
-        self.config = SimpleConfig({'electrumsys_path': self.user_dir})
+        self.config = SimpleConfig({'electrum_path': self.user_dir})
 
         self.wallet_path = os.path.join(self.user_dir, "somewallet")
 
@@ -191,7 +191,7 @@ class TestCreateRestoreWallet(WalletTestCase):
         self.assertEqual(text, wallet.keystore.get_master_public_key())
         self.assertEqual('bc1q2ccr34wzep58d4239tl3x3734ttle92a8srmuw', wallet.get_receiving_addresses()[0])
 
-    def test_restore_wallet_from_text_xkey_that_is_also_a_valid_electrumsys_seed_by_chance(self):
+    def test_restore_wallet_from_text_xkey_that_is_also_a_valid_electrum_seed_by_chance(self):
         text = 'yprvAJBpuoF4FKpK92ofzQ7ge6VJMtorow3maAGPvPGj38ggr2xd1xCrC9ojUVEf9jhW5L9SPu6fU2U3o64cLrRQ83zaQGNa6YP3ajZS6hHNPXj'
         d = restore_wallet_from_text(text, path=self.wallet_path, gap_limit=1, config=self.config)
         wallet = d['wallet']  # type: Standard_Wallet

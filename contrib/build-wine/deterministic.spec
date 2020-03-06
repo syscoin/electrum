@@ -54,7 +54,7 @@ datas += collect_data_files('jsonrpcserver')
 datas += collect_data_files('jsonrpcclient')
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
-a = Analysis([home+'run_electrumsys',
+a = Analysis([home+'run_electrum',
               home+'electrum/gui/qt/main_window.py',
               home+'electrum/gui/text.py',
               home+'electrum/util.py',

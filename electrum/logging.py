@@ -69,12 +69,12 @@ console_stderr_handler.setLevel(logging.WARNING)
 root_logger.addHandler(console_stderr_handler)
 
 # creates a logger specifically for electrum library
-electrumsys_logger = logging.getLogger("electrum")
-electrumsys_logger.setLevel(logging.DEBUG)
+electrum_logger = logging.getLogger("electrum")
+electrum_logger.setLevel(logging.DEBUG)
 
 
 def _delete_old_logs(path, keep=10):
-    files = sorted(list(pathlib.Path(path).glob("electrumsys_log_*.log")), reverse=True)
+    files = sorted(list(pathlib.Path(path).glob("electrum_log_*.log")), reverse=True)
     for f in files[keep:]:
         os.remove(str(f))
 
@@ -89,7 +89,7 @@ def _configure_file_logging(log_directory: pathlib.Path):
 
     timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     PID = os.getpid()
-    _logfile_path = log_directory / f"electrumsys_log_{timestamp}_{PID}.log"
+    _logfile_path = log_directory / f"electrum_log_{timestamp}_{PID}.log"
 
     file_handler = logging.FileHandler(_logfile_path)
     file_handler.setFormatter(file_formatter)
@@ -117,7 +117,7 @@ def _process_verbosity_log_levels(verbosity):
         items = filt.split('=')
         if len(items) == 1:
             level = items[0]
-            electrumsys_logger.setLevel(level.upper())
+            electrum_logger.setLevel(level.upper())
         elif len(items) == 2:
             logger_name, level = items
             logger = get_logger(logger_name)
@@ -190,7 +190,7 @@ class ShortcutFilteringFilter(logging.Filter):
 def get_logger(name: str) -> logging.Logger:
     if name.startswith("electrum."):
         name = name[9:]
-    return electrumsys_logger.getChild(name)
+    return electrum_logger.getChild(name)
 
 
 _logger = get_logger(__name__)
@@ -242,9 +242,9 @@ def configure_logging(config):
     # if using kivy, avoid kivy's own logs to get printed twice
     logging.getLogger('kivy').propagate = False
 
-    from . import ELECTRUMSYS_VERSION
+    from . import ELECTRUM_VERSION
     from .constants import GIT_REPO_URL
-    _logger.info(f"Electrum version: {ELECTRUMSYS_VERSION} - https://electrum.syscoin.org - {GIT_REPO_URL}")
+    _logger.info(f"Electrum version: {ELECTRUM_VERSION} - https://electrum.syscoin.org - {GIT_REPO_URL}")
     _logger.info(f"Python version: {sys.version}. On platform: {describe_os_version()}")
     _logger.info(f"Logging to file: {str(_logfile_path)}")
     _logger.info(f"Log filters: verbosity {repr(verbosity)}, verbosity_shortcuts {repr(verbosity_shortcuts)}")
